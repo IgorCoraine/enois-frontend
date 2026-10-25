@@ -15,6 +15,7 @@ import { Route as SuporteRouteImport } from './routes/suporte'
 import { Route as SobreRouteImport } from './routes/sobre'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ServicosRouteImport } from './routes/servicos'
+import { Route as SelosRouteImport } from './routes/selos'
 import { Route as SegurancaRouteImport } from './routes/seguranca'
 import { Route as SalvosRouteImport } from './routes/salvos'
 import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
@@ -103,6 +104,11 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
 const ServicosRoute = ServicosRouteImport.update({
   id: '/servicos',
   path: '/servicos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SelosRoute = SelosRouteImport.update({
+  id: '/selos',
+  path: '/selos',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SegurancaRoute = SegurancaRouteImport.update({
@@ -437,6 +443,7 @@ export interface FileRoutesByFullPath {
   '/robots.txt': typeof RobotsDottxtRoute
   '/salvos': typeof SalvosRoute
   '/seguranca': typeof SegurancaRoute
+  '/selos': typeof SelosRoute
   '/servicos': typeof ServicosRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sobre': typeof SobreRoute
@@ -504,6 +511,7 @@ export interface FileRoutesByTo {
   '/robots.txt': typeof RobotsDottxtRoute
   '/salvos': typeof SalvosRoute
   '/seguranca': typeof SegurancaRoute
+  '/selos': typeof SelosRoute
   '/servicos': typeof ServicosRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sobre': typeof SobreRoute
@@ -572,6 +580,7 @@ export interface FileRoutesById {
   '/robots.txt': typeof RobotsDottxtRoute
   '/salvos': typeof SalvosRoute
   '/seguranca': typeof SegurancaRoute
+  '/selos': typeof SelosRoute
   '/servicos': typeof ServicosRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sobre': typeof SobreRoute
@@ -641,6 +650,7 @@ export interface FileRouteTypes {
     | '/robots.txt'
     | '/salvos'
     | '/seguranca'
+    | '/selos'
     | '/servicos'
     | '/sitemap.xml'
     | '/sobre'
@@ -708,6 +718,7 @@ export interface FileRouteTypes {
     | '/robots.txt'
     | '/salvos'
     | '/seguranca'
+    | '/selos'
     | '/servicos'
     | '/sitemap.xml'
     | '/sobre'
@@ -775,6 +786,7 @@ export interface FileRouteTypes {
     | '/robots.txt'
     | '/salvos'
     | '/seguranca'
+    | '/selos'
     | '/servicos'
     | '/sitemap.xml'
     | '/sobre'
@@ -843,6 +855,7 @@ export interface RootRouteChildren {
   RobotsDottxtRoute: typeof RobotsDottxtRoute
   SalvosRoute: typeof SalvosRoute
   SegurancaRoute: typeof SegurancaRoute
+  SelosRoute: typeof SelosRoute
   ServicosRoute: typeof ServicosRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SobreRoute: typeof SobreRoute
@@ -908,6 +921,13 @@ declare module '@tanstack/react-router' {
       path: '/servicos'
       fullPath: '/servicos'
       preLoaderRoute: typeof ServicosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/selos': {
+      id: '/selos'
+      path: '/selos'
+      fullPath: '/selos'
+      preLoaderRoute: typeof SelosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/seguranca': {
@@ -1469,6 +1489,7 @@ const rootRouteChildren: RootRouteChildren = {
   RobotsDottxtRoute: RobotsDottxtRoute,
   SalvosRoute: SalvosRoute,
   SegurancaRoute: SegurancaRoute,
+  SelosRoute: SelosRoute,
   ServicosRoute: ServicosRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SobreRoute: SobreRoute,

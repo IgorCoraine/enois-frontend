@@ -7,13 +7,14 @@ import type { OAuthProvider } from "@/types/application/auth/oauth-provider";
  * lista para decidir o que pode ser vinculado. Para reativar o Apple, além de incluí-lo aqui é
  * preciso devolver o botão e o ícone em `routes/entrar.tsx` (o histórico tem o código removido).
  */
-export const ENABLED_OAUTH_PROVIDERS: readonly OAuthProvider[] = ["GOOGLE", "LINKEDIN"];
+export const ENABLED_OAUTH_PROVIDERS: readonly OAuthProvider[] = ["GOOGLE", "LINKEDIN", "GITHUB"];
 
 /** Rótulo de exibição de cada provedor conhecido. */
 export const OAUTH_PROVIDER_LABELS: Record<OAuthProvider, string> = {
   GOOGLE: "Google",
   APPLE: "Apple",
   LINKEDIN: "LinkedIn",
+  GITHUB: "GitHub",
 };
 
 /** Provedor reconhecido pelo front (habilitado ou não). */

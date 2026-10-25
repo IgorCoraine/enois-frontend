@@ -75,6 +75,7 @@ import { SandboxedHtmlFrame } from "@/components/post/sandboxed-html-frame";
 import { ProfileBannerDialog } from "@/components/profile-banner-dialog";
 import { ProfileBioDialog } from "@/components/profile-bio-dialog";
 import { ProfileResumeDialog } from "@/components/profile-resume-dialog";
+import { ProfileSeals } from "@/components/profile-seals";
 import { ProfileExperiencesSection } from "@/components/profile/experiences-section";
 import { ProfileCommunityShelf } from "@/components/profile/profile-community-shelf";
 import { ProfileExplorePanel } from "@/components/profile/profile-explore-panel";
@@ -663,6 +664,10 @@ function Profile() {
                     <>{texts.games.developer.devChip}</>
                   </Link>
                 )}
+              </div>
+
+              <div className="mt-4">
+                <ProfileSeals username={user.username} />
               </div>
 
               <p className="mt-1 break-words text-sm font-normal text-primary">{user.headline}</p>

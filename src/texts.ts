@@ -385,6 +385,22 @@ export const texts = {
   },
 
   auth: {
+    githubLink: {
+      title: "GitHub para selos de contribuição",
+      description:
+        "Vincule sua conta GitHub para que o Énóis possa verificar PRs integrados nos repositórios oficiais. O vínculo não altera seu login nem sua verificação de identidade.",
+      linkedAs: (login: string) => `Vinculado como @${login}`,
+      link: "Vincular GitHub",
+      unlink: "Desvincular GitHub",
+      linking: "Abrindo GitHub...",
+      unlinkConfirm:
+        "Desvincular o GitHub? Os selos já concedidos permanecem, mas novas contribuições não serão vinculadas.",
+      error: "Não foi possível alterar o vínculo com o GitHub.",
+      unlinkError: "Não foi possível desvincular o GitHub.",
+      criteria: "Ler os critérios dos selos",
+      notConfigured:
+        "O vínculo com GitHub ainda não está configurado neste ambiente. Fale com a administração.",
+    },
     hero: {
       eyebrow: "Networking com propósito",
       // A frase e a TESE do produto (a mesma da landing), nao um depoimento: antes era uma
@@ -1228,6 +1244,7 @@ export const texts = {
       terms: "Termos",
       contact: "Contato",
       api: "API pública",
+      seals: "Selos",
       about: "Sobre o énóis",
       home: "Início",
     },
@@ -1631,6 +1648,13 @@ export const texts = {
   },
 
   profile: {
+    seals: {
+      title: "Selos de contribuição",
+      grantedAt: "Concedido em",
+      categories: "Categorias",
+      evidence: "Evidências públicas",
+      noEvidence: "Sem evidência pública.",
+    },
     seoFallbackTitle: "Perfil",
     seoFallbackDescription: "Perfil profissional",
     seoTitle: (name: string) => `${name} · Énóis`,
@@ -3336,6 +3360,7 @@ export const texts = {
       emails: "E-mails",
       monitoring: "Monitorabilidade",
       contributors: "Contribuintes",
+      githubContributions: "Contribuições GitHub",
       suspicious: "Contas suspeitas",
       suspiciousPosts: "Posts suspeitos",
     },
@@ -3357,6 +3382,47 @@ export const texts = {
       experience: "Experiência",
       acceptedAt: "Termos aceitos em",
       saveError: "Não foi possível mudar o status.",
+    },
+    githubContributions: {
+      title: "Contribuições GitHub",
+      description:
+        "Evidências de PRs integrados nos repositórios oficiais. A sincronização só coleta; validar é uma decisão humana e auditada.",
+      filterAll: "Todas",
+      status: {
+        PENDING: "Pendente",
+        VALIDATED: "Validada",
+        REJECTED: "Recusada",
+        CONTESTED: "Contestada",
+        REVOKED: "Revogada",
+      } as Record<string, string>,
+      sync: "Sincronizar agora",
+      syncDryRun: "Simular backfill",
+      syncFull: "Backfill completo",
+      syncing: "Sincronizando...",
+      syncDone: (created: number, updated: number, fetched: number) =>
+        `Sincronização concluída: ${fetched} PRs lidos, ${created} novos, ${updated} atualizados.`,
+      syncError: "Não foi possível sincronizar com o GitHub.",
+      rateLimited: "O GitHub limitou as chamadas; tente de novo mais tarde.",
+      empty: "Nenhuma evidência nesta fila.",
+      error: "Não foi possível carregar as evidências.",
+      refresh: "Atualizar evidências",
+      reviewNote: "Justificativa da revisão",
+      reviewNotePlaceholder: "Explique por que esta contribuição é relevante (ou não).",
+      validate: "Validar",
+      reject: "Recusar",
+      contest: "Contestar",
+      revokeSeal: "Revogar selo do usuário",
+      revokeReason: "Motivo da revogação do selo",
+      reviewedBy: "Revisado por",
+      mergedAt: "Integrado em",
+      tests: "Testes",
+      reverted: "Revertido",
+      openPr: "Abrir PR",
+      noUser: "GitHub sem vínculo com uma conta Énóis",
+      saveError: "Não foi possível concluir a revisão.",
+      repositoriesTitle: "Repositórios elegíveis",
+      repositoryOn: "Elegível",
+      repositoryOff: "Desabilitado",
     },
     suspiciousPosts: {
       title: "Posts suspeitos",
@@ -4149,6 +4215,49 @@ export const texts = {
         ],
       },
     },
+  },
+
+  sealsPage: {
+    seoTitle: "Selos de contribuição · Énóis",
+    seoDescription:
+      "Como o Énóis reconhece contribuições técnicas verificadas nos repositórios oficiais da organização Rede-ENois.",
+    title: "Selos de contribuição",
+    intro:
+      "O Énóis reconhece quem efetivamente ajuda a construir o projeto. O primeiro selo é o Programador Foda: uma evidência pública de contribuição técnica verificada, não um produto comercial nem uma recompensa por volume de PRs.",
+    badgeTitle: "Programador Foda",
+    badgeDescription:
+      "Contribuidor reconhecido do Énóis. Este selo indica que existem contribuições de código verificadas e relevantes nos repositórios oficiais do projeto.",
+    criteriaTitle: "Critérios de elegibilidade",
+    criteria: [
+      "PR integrado em um dos repositórios oficiais da organização Rede-ENois.",
+      "Autoria verificável pelo ID imutável da conta GitHub vinculada ao perfil.",
+      "Relevância técnica, qualidade e impacto avaliados por uma pessoa.",
+      "Testes, revisão e arquivos alterados entram como sinais de apoio, não como pontuação automática.",
+      "PRs pequenos podem ser elegíveis quando resolvem um problema real; volume de PRs não concede selo.",
+      "Alterações triviais, PRs revertidos e métricas artificiais não são elegíveis.",
+    ],
+    reposTitle: "Repositórios elegíveis",
+    reposEmpty: "Nenhum repositório elegível configurado neste ambiente.",
+    linkTitle: "Como vincular seu GitHub",
+    linkSteps: [
+      "Entre na sua conta do Énóis.",
+      "Abra Segurança e toque em “Vincular GitHub”.",
+      "Autorize o acesso de leitura ao perfil público do GitHub.",
+      "A partir daí, PRs integrados nos repositórios elegíveis entram na fila de avaliação.",
+    ],
+    statesTitle: "Estados da avaliação",
+    states: {
+      PENDING: "Pendente: evidência coletada, aguardando revisão humana.",
+      VALIDATED: "Validada: contribuição reconhecida e selo concedido.",
+      REJECTED: "Recusada: não atende aos critérios; não concede selo.",
+      CONTESTED: "Contestada: precisa de uma nova revisão.",
+      REVOKED: "Revogada: o reconhecimento deixou de valer, com registro de auditoria.",
+    },
+    privacyTitle: "O que fica público",
+    privacy:
+      "No perfil aparecem o nome do selo, a descrição, a data de concessão, a categoria e os links dos PRs validados. Notas internas, suspeitas, e-mail e detalhes de revisão não são públicos.",
+    cta: "Vincular GitHub",
+    ctaHint: "É preciso ter uma conta no Énóis e entrar antes de vincular.",
   },
 
   root: {
