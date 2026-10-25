@@ -9,6 +9,7 @@ import { ArrowLeft, Camera, Image as ImageIcon } from "lucide-react";
 import { corporateApi } from "@/lib/api";
 import { resolveCdnUrl } from "@/lib/api/media";
 import { requireAuth } from "@/lib/require-auth";
+import { useIsAuthenticated } from "@/lib/use-auth";
 import { useMediaUpload } from "@/lib/use-media-upload";
 
 import { Button } from "@/components/ui/button";
@@ -56,9 +57,13 @@ function Profissional() {
   const avatarRef = useRef<HTMLInputElement>(null);
   const bannerRef = useRef<HTMLInputElement>(null);
 
+  const authenticated = useIsAuthenticated();
+
   const { data: profile, isLoading } = useQuery({
     queryKey: ["business-profile"],
     queryFn: () => corporateApi.me(),
+    enabled: authenticated,
+    staleTime: 30_000,
   });
 
   // Primeira carga do formulário com o que já existe (não sobrescreve o que a pessoa digitou).

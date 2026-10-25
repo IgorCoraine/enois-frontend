@@ -5,6 +5,7 @@ import { texts } from "@/texts";
 import { Star } from "lucide-react";
 
 import { communitiesApi } from "@/lib/api";
+import { useIsAuthenticated } from "@/lib/use-auth";
 import { cn } from "@/lib/utils";
 
 /** Estrela para favoritar/desfavoritar uma comunidade (bookmark, não exige participar). */
@@ -16,10 +17,13 @@ export function CommunityFavoriteButton({
   className?: string;
 }) {
   const queryClient = useQueryClient();
+  const authenticated = useIsAuthenticated();
 
   const { data } = useQuery({
     queryKey: COMMUNITY_FAVORITES_KEY,
     queryFn: () => communitiesApi.favorites(),
+    enabled: authenticated,
+    staleTime: 30_000,
   });
   const isFavorite = (data?.items ?? []).some((c) => c.id === communityId);
 

@@ -46,6 +46,7 @@ import { clearFeedScroll, readFeedScroll } from "@/lib/feed-scroll-restoration";
 import { litePageSize } from "@/lib/lite-mode";
 import { requireAuth } from "@/lib/require-auth";
 import { ogMetas } from "@/lib/seo";
+import { useIsAuthenticated } from "@/lib/use-auth";
 import { useLiteMode } from "@/lib/use-lite-mode";
 import { useMediaUpload } from "@/lib/use-media-upload";
 import { cn } from "@/lib/utils";
@@ -157,10 +158,14 @@ function rememberTopic(value: string): void {
 }
 
 function useFeed(tab: HomeTab) {
+  // O SSR não roda o beforeLoader: um visitante sem sessão chegava a disparar o feed e levar 401
+  // em toda tela. A query só existe com sessão (a pista de auth cobre o primeiro render).
+  const authenticated = useIsAuthenticated();
   // Em modo lite cada página vem maior: rolar o mesmo tanto custa menos idas ao servidor.
   const lite = useLiteMode();
   const pageSize = litePageSize(FEED_PAGE_SIZE, lite);
   // Pagina por cursor: o backend devolve nextCursor e o scroll infinito busca a proxima pagina.
+  // staleTime curto: voltar para uma aba dentro de 20s não refaz a página inteira.
   return useInfiniteQuery({
     queryKey: ["feed", tab],
     queryFn: ({ pageParam }) =>
@@ -169,34 +174,46 @@ function useFeed(tab: HomeTab) {
         : feedApi.list(pageParam ?? null, pageSize, tab),
     initialPageParam: null as string | null,
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    enabled: authenticated,
+    staleTime: 20_000,
   });
 }
 
 function useProfile() {
+  const authenticated = useIsAuthenticated();
   return useQuery({
     queryKey: ["me"],
     queryFn: () => profileApi.me(),
+    enabled: authenticated,
+    staleTime: 60_000,
   });
 }
 
 function useSuggestions() {
+  const authenticated = useIsAuthenticated();
   return useQuery({
     queryKey: ["network", "suggestions"],
     // Busca um lote maior: o "ver outras" gira entre os 4 primeiros sem pedir de novo.
     queryFn: () => networkApi.suggestions(12),
+    enabled: authenticated,
+    staleTime: 120_000,
   });
 }
 
 function useEvents() {
+  const authenticated = useIsAuthenticated();
   return useQuery({
     queryKey: ["events"],
     queryFn: () => eventsApi.list(),
+    enabled: authenticated,
+    staleTime: 120_000,
   });
 }
 
 function Home() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const authenticated = useIsAuthenticated();
   // A aba vem da URL; trocar de aba REPLACES o histórico (o "voltar" continua voltando para a
   // página anterior, e não passeando pelas abas).
   const { aba } = Route.useSearch();
@@ -226,6 +243,8 @@ function Home() {
   const { data: corporate } = useQuery({
     queryKey: ["business-profile"],
     queryFn: () => corporateApi.me(),
+    enabled: authenticated,
+    staleTime: 120_000,
   });
   const identity = effectiveIdentity(chosenIdentity, corporate);
 
@@ -279,6 +298,8 @@ function Home() {
   const scheduledQuery = useQuery({
     queryKey: ["feed", "scheduled"],
     queryFn: () => feedApi.scheduled(),
+    enabled: authenticated,
+    staleTime: 60_000,
   });
   const scheduledList = scheduledQuery.data ?? [];
 
