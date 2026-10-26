@@ -12,8 +12,6 @@ import { lojaApi } from "@/lib/api";
 import { useCurrentUser } from "@/lib/current-user";
 import { formatFaisca } from "@/lib/faisca";
 
-import "./frame-shop.css";
-
 export function FrameShop({ onlyOwned = false }: FrameShopProps) {
   const queryClient = useQueryClient();
   const { toast } = useToast();
