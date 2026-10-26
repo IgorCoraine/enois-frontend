@@ -3,11 +3,6 @@ import { type ChangeEvent, useCallback, useRef, useState } from "react";
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, createFileRoute, notFound, useNavigate } from "@tanstack/react-router";
 
-import {
-  profileNameFontFamily,
-  profileNameTheme,
-  profileNameThemePaint,
-} from "@/constants/profile-name-fonts";
 import { usePreferencesStore } from "@/stores/preferences.store";
 import { texts } from "@/texts";
 import type { UpdateProfileRequest } from "@/types/application/profile/update-profile-request";
@@ -19,6 +14,9 @@ import {
   PostCardSkeletons,
   StyledName,
   UserAvatar,
+  profileNameFontFamily,
+  profileNameTheme,
+  profileNameThemePaint,
 } from "@rede-enois/design-system/domain";
 import { ImageCropDialog, InfiniteScroll } from "@rede-enois/design-system/patterns";
 import {
