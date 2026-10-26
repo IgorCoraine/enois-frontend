@@ -4,6 +4,12 @@
 **Branch analisada:** `main` (commit `24ef379`)
 **Comparação:** `main` vs `develop`
 
+> **Retrato histórico (2026-06-10).** Vários itens já foram corrigidos e não descrevem o código atual:
+> a sessão saiu do `localStorage` para cookies HttpOnly (C2), o callback OAuth não leva token na URL
+> (C4), `X-User-Id` não é enviado nem aceito (C3), o fallback de chave do ImageKit saiu do código (C1;
+> o envio pelo ImageKit está desativado), links passam por uma lista de esquemas (H3) e há CSP com nonce
+> (H5). Para o estado atual, veja o [`SECURITY.md`](SECURITY.md).
+
 ---
 
 ## 🔴 CRÍTICO (5)

@@ -1,5 +1,12 @@
 # Frontend Integration Guide
 
+> **Sessão no navegador (atual):** o app não guarda token. Login, 2FA, confirmação de e-mail, refresh e
+> OAuth gravam os cookies HttpOnly `enois_session`/`enois_refresh`; o app chama a API com
+> `credentials: "include"` e manda `X-CSRF-Protection: 1` (o backend recusa escrita com cookie sem ele,
+> 403 `CSRF_REQUIRED`). As respostas de auth não trazem mais `token`/`refreshToken`. O header
+> `X-Session-Token` continua valendo só para clientes fora do navegador; `X-User-Id` não autentica
+> nada (foi removido do backend). Os exemplos abaixo com `localStorage`/`X-User-Id` são históricos.
+
 ## Setup
 
 ```

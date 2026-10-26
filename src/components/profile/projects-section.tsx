@@ -6,6 +6,7 @@ import { texts } from "@/texts";
 import type { ProjectsSectionProps } from "@/types/components/profile/projects-section-props";
 
 import { projectsApi } from "@/lib/api";
+import { safeHref } from "@/lib/safe-url";
 
 import { Button } from "@/components/ui/button";
 
@@ -93,7 +94,7 @@ export function ProfileProjectsSection({ username, isOwner }: ProjectsSectionPro
 
                 {project.repoUrl && (
                   <a
-                    href={project.repoUrl}
+                    href={safeHref(project.repoUrl) ?? undefined}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="mt-2 inline-flex items-center gap-1 text-xs font-normal text-primary hover:underline"

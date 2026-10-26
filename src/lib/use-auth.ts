@@ -2,20 +2,20 @@ import { useEffect, useState } from "react";
 
 import { useNavigate } from "@tanstack/react-router";
 
-import { getSessionToken } from "./api-client";
 import { readAuthHint, syncAuthHint } from "./auth-hint";
 import { useCurrentUser } from "./current-user";
+import { hasSessionFlag } from "./session";
 
 export function isAuthenticated(): boolean {
-  return !!getSessionToken();
+  return hasSessionFlag();
 }
 
 /**
  * "Estou logado?" para decidir o que desenhar — sem quebrar a hidratação.
  *
- * O token vive no localStorage, que o servidor não enxerga. O primeiro paint usa a pista do cookie
- * `enois_auth` (ver `auth-hint.ts`), que servidor e cliente leem igual — então o HTML já vem com a
- * casca certa e a hidratação não discorda. Logo depois da montagem, o valor real (o token) confirma
+ * A sessão vive em cookies HttpOnly da API, que este servidor não enxerga. O primeiro paint usa
+ * a pista do cookie `enois_auth` (ver `auth-hint.ts`), que servidor e cliente leem igual — então o
+ * HTML já vem com a casca certa e a hidratação não discorda. Logo depois da montagem, o indicador de sessão confirma
  * ou corrige a pista, e a pista é realinhada para a próxima carga.
  */
 export function useIsAuthenticated(): boolean {
@@ -32,7 +32,7 @@ export function useIsAuthenticated(): boolean {
 
 export function useAuth() {
   const navigate = useNavigate();
-  const token = getSessionToken();
+  const token = hasSessionFlag();
   const query = useCurrentUser();
 
   return {

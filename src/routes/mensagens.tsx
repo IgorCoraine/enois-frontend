@@ -7,6 +7,7 @@ import { texts } from "@/texts";
 import { Search } from "lucide-react";
 
 import { messagesApi, networkApi } from "@/lib/api";
+import { conversationErrorMessage } from "@/lib/conversation-error";
 import { useCurrentUser } from "@/lib/current-user";
 import { liteInterval, litePageSize } from "@/lib/lite-mode";
 import { requireAuth } from "@/lib/require-auth";
@@ -115,6 +116,7 @@ function Mensagens() {
       setSearchQuery("");
       queryClient.invalidateQueries({ queryKey: ["conversations"] });
     },
+    onError: (err) => toast(conversationErrorMessage(err), "error"),
   });
 
   const restoreSelected = useMutation({

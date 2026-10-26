@@ -44,6 +44,7 @@ import { useCurrentUser } from "@/lib/current-user";
 import { dataCurta } from "@/lib/date/format";
 import { canCreateJob, missingReputationToCreateJob } from "@/lib/job-permissions";
 import { requireAuth } from "@/lib/require-auth";
+import { safeHref } from "@/lib/safe-url";
 import { useIsAuthenticated } from "@/lib/use-auth";
 import { cn } from "@/lib/utils";
 
@@ -669,7 +670,9 @@ export function JobsListPage({
 
                       {j.sourceType === "EXTERNAL" ? (
                         <a
-                          href={j.applyEmail ? `mailto:${j.applyEmail}` : (j.sourceUrl ?? "#")}
+                          href={
+                            j.applyEmail ? `mailto:${j.applyEmail}` : (safeHref(j.sourceUrl) ?? "#")
+                          }
                           target={j.applyEmail ? undefined : "_blank"}
                           rel={j.applyEmail ? undefined : "noopener noreferrer"}
                           // text-primary-foreground e obrigatorio aqui: o bloco pai usa text-muted-foreground

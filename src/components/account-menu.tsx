@@ -36,6 +36,7 @@ import { logout } from "@/lib/logout";
 import { cn } from "@/lib/utils";
 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { useToast } from "@/components/ui/toast";
 
 import { ChangeEmailDialog } from "./change-email-dialog";
 import { ChangePasswordDialog } from "./change-password-dialog";
@@ -56,6 +57,7 @@ export function AccountMenu({ profile }: AccountMenuProps) {
   const [showLinkedAccounts, setShowLinkedAccounts] = useState(false);
   const [showHealthyUsage, setShowHealthyUsage] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
+  const { toast } = useToast();
   const [chosenIdentity, setChosenIdentity] = useState<ActiveIdentity>(() => readActiveIdentity());
 
   useEffect(() => subscribeActiveIdentity(() => setChosenIdentity(readActiveIdentity())), []);
@@ -106,9 +108,14 @@ export function AccountMenu({ profile }: AccountMenuProps) {
     setShowDeleteAccount(true);
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     setLoggingOut(true);
-    void logout();
+    if (await logout()) return;
+    setLoggingOut(false);
+    toast(texts.account.menu.logoutFailed, "error", {
+      label: texts.account.menu.logoutRetry,
+      onClick: () => void handleLogout(),
+    });
   };
 
   return (
@@ -306,7 +313,7 @@ export function AccountMenu({ profile }: AccountMenuProps) {
           <div className="shrink-0 border-t border-border-soft py-1">
             <button
               type="button"
-              onClick={handleLogout}
+              onClick={() => void handleLogout()}
               disabled={loggingOut}
               className={cn(ITEM_CLASS, "text-destructive hover:text-destructive")}
             >

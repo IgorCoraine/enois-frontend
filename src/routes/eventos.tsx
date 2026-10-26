@@ -15,6 +15,7 @@ import { eventsApi } from "@/lib/api";
 import { ApiError } from "@/lib/api-client";
 import { resolveCdnUrl } from "@/lib/api/media";
 import { requireAuth } from "@/lib/require-auth";
+import { safeHref } from "@/lib/safe-url";
 import { useMediaUpload } from "@/lib/use-media-upload";
 
 import { Badge } from "@/components/ui/badge";
@@ -261,7 +262,7 @@ function Eventos() {
 
                   {e.streamUrl && !e.expired && (
                     <a
-                      href={e.streamUrl}
+                      href={safeHref(e.streamUrl) ?? undefined}
                       target="_blank"
                       rel="noreferrer"
                       className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground transition hover:opacity-90"

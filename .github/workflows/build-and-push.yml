@@ -48,13 +48,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 📥 Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: ⚙️ Configurar Docker Buildx
-        uses: docker/setup-buildx-action@v4
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
 
       - name: 🧪 Build sem push
-        uses: docker/build-push-action@v7
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: .
           file: ./Dockerfile
@@ -79,21 +79,24 @@ jobs:
 
     steps:
       - name: 📥 Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      # Contexts go through env, never interpolated into the script text.
       - name: 🏷️ Definir tags
         id: vars
+        env:
+          BRANCH: ${{ github.ref_name }}
+          COMMIT_SHA: ${{ github.sha }}
         run: |
-          BRANCH="${{ github.ref_name }}"
-          SHA_SHORT=$(echo "${{ github.sha }}" | cut -c1-7)
+          SHA_SHORT=$(echo "${COMMIT_SHA}" | cut -c1-7)
           echo "branch=${BRANCH}" >> "$GITHUB_OUTPUT"
           echo "image_tag=${BRANCH}-${SHA_SHORT}" >> "$GITHUB_OUTPUT"
 
       - name: ⚙️ Configurar Docker Buildx
-        uses: docker/setup-buildx-action@v4
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
 
       - name: 🔑 Login no Harbor
-        uses: docker/login-action@v3
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
         with:
           registry: ${{ env.HARBOR_REGISTRY }}
           username: ${{ secrets.HARBOR_USER }}
@@ -101,13 +104,15 @@ jobs:
 
       - name: 🏷️ Definir build-args por branch
         id: buildargs
+        env:
+          BRANCH: ${{ steps.vars.outputs.branch }}
         run: |
-          if [ "${{ steps.vars.outputs.branch }}" = "main" ]; then
-            echo "api_backend=${{ env.VITE_API_BACKEND_PROD }}" >> "$GITHUB_OUTPUT"
-            echo "site_url=${{ env.VITE_SITE_URL_PROD }}" >> "$GITHUB_OUTPUT"
+          if [ "${BRANCH}" = "main" ]; then
+            echo "api_backend=${VITE_API_BACKEND_PROD}" >> "$GITHUB_OUTPUT"
+            echo "site_url=${VITE_SITE_URL_PROD}" >> "$GITHUB_OUTPUT"
           else
-            echo "api_backend=${{ env.VITE_API_BACKEND_QA }}" >> "$GITHUB_OUTPUT"
-            echo "site_url=${{ env.VITE_SITE_URL_QA }}" >> "$GITHUB_OUTPUT"
+            echo "api_backend=${VITE_API_BACKEND_QA}" >> "$GITHUB_OUTPUT"
+            echo "site_url=${VITE_SITE_URL_QA}" >> "$GITHUB_OUTPUT"
           fi
 
       # push:true direto no buildx (buildkit) dá 400 no token service do Harbor com
@@ -115,7 +120,7 @@ jobs:
       # não tocar na config do Harbor, que funciona normal pras pipes do GitLab).
       # Fix: build local (load) + docker push classico por tag, igual ao fluxo do GitLab.
       - name: 🚀 Build (local, sem push)
-        uses: docker/build-push-action@v7
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: .
           file: ./Dockerfile
@@ -131,11 +136,14 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: 📤 Push para Harbor (docker push classico, tag por tag)
+        env:
+          IMAGE_TAG: ${{ steps.vars.outputs.image_tag }}
+          BRANCH: ${{ steps.vars.outputs.branch }}
         run: |
           set -euo pipefail
-          IMG="${{ env.HARBOR_REGISTRY }}/${{ env.HARBOR_PROJECT }}/${{ env.IMAGE_NAME }}"
-          docker push "${IMG}:${{ steps.vars.outputs.image_tag }}"
-          docker push "${IMG}:${{ steps.vars.outputs.branch }}"
+          IMG="${HARBOR_REGISTRY}/${HARBOR_PROJECT}/${IMAGE_NAME}"
+          docker push "${IMG}:${IMAGE_TAG}"
+          docker push "${IMG}:${BRANCH}"
 
   # ===========================================================================
   # Deploy QA — SOMENTE branch qa, SOMENTE push/workflow_dispatch, self-hosted

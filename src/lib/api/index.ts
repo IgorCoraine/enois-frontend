@@ -42,4 +42,4 @@ export { contributorsApi } from "./contributors";
 export { statsApi } from "./stats";
 export { corporateApi } from "./corporate";
 export { resumeImportApi, resumeErrorMessage } from "./resume-import";
-export { api, ApiError, buildQuery, clearSession, getSessionToken } from "../api-client";
+export { api, ApiError, buildQuery, clearSession } from "../api-client";

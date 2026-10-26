@@ -53,8 +53,8 @@ export const authApi = {
   /** Estado do segundo fator e da verificação da conta. */
   twoFactorStatus: () => api.get<TwoFactorStatus>("/auth/2fa/status"),
 
-  /** Inicia a configuração do aplicativo authenticator. */
-  startTotpSetup: () => api.post<TotpSetup>("/auth/2fa/totp/setup"),
+  /** Inicia a configuração do aplicativo authenticator (exige a senha atual). */
+  startTotpSetup: (password: string) => api.post<TotpSetup>("/auth/2fa/totp/setup", { password }),
 
   /** Confirma o código do app e devolve os códigos de recuperação. */
   enableTotp: (code: string, password: string) =>
@@ -70,8 +70,6 @@ export const authApi = {
 
   disableEmailOtp: (password: string) =>
     api.post<StatusResponse>("/auth/2fa/email/disable", { password }),
-
-  refresh: (refreshToken: string) => api.post<AuthResponse>("/auth/refresh", { refreshToken }),
 
   logout: () => api.post<void>("/auth/logout"),
 

@@ -1,5 +1,12 @@
 # Guia de Integração Frontend
 
+> **Sessão no navegador (atual):** o app não guarda token. Login, 2FA, confirmação de e-mail, refresh e
+> OAuth gravam os cookies HttpOnly `enois_session`/`enois_refresh`; o app chama a API com
+> `credentials: "include"` e manda `X-CSRF-Protection: 1` (o backend recusa escrita com cookie sem ele,
+> 403 `CSRF_REQUIRED`). As respostas de auth não trazem mais `token`/`refreshToken`. O header
+> `X-Session-Token` continua valendo só para clientes fora do navegador; `X-User-Id` não autentica
+> nada (foi removido do backend). Os exemplos abaixo com `localStorage`/`X-User-Id` são históricos.
+
 ✅ Substituir `src/lib/mock-data.ts` por chamadas reais à API.
 
 ## Sumário
@@ -33,7 +40,7 @@
 
 - Base URL `http://localhost:8080/api`
 - `Content-Type: application/json` automático em todas requisições
-- `X-Session-Token` lido do `localStorage('session_token')`
+- Sessão por cookies HttpOnly (`credentials: "include"`) + `X-CSRF-Protection: 1`
 - `Idempotency-Key` gerado via `crypto.randomUUID()` em POST/PUT/PATCH/DELETE
 - Desenvelopamento de `CommandResponse` (`{ status, body }`) em escritas
 - `PageResponse` tipado com `items` + `nextCursor`
@@ -60,7 +67,7 @@ http://localhost:8080/api
 - Usar `X-Session-Token` em **todas** as requisições que exigem usuário autenticado
 - O token é um `base64url` de 32 bytes (ex: `abc123...`)
 - O token expira em **7 dias**
-- Em desenvolvimento, `X-User-Id` pode substituir o token
+- `X-User-Id` não autentica (removido do backend)
 
 ### Idempotency-Key
 
@@ -188,7 +195,7 @@ Resposta (201):
 
 **Ações do frontend:**
 
-- Salvar `token` em localStorage/sessionStorage
+- Não há token no corpo: a sessão chega nos cookies HttpOnly da resposta
 - Salvar `user` para exibição imediata
 - Redirecionar para feed
 

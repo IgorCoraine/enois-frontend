@@ -32,7 +32,10 @@ const server = vi.hoisted(() => {
     failFavorite: false,
     pendingIdentity: [] as { gameId: string; resolve: (token: string) => void }[],
   };
-  const token = () => localStorage.getItem("session_token");
+  // The session lives in HttpOnly cookies the page cannot read; the fake server reads the identity
+  // the "cookie" would carry from `test_identity`, and only while the app flags a session.
+  const token = () =>
+    localStorage.getItem("session_active") === "1" ? localStorage.getItem("test_identity") : null;
   return { state, token };
 });
 
@@ -203,6 +206,11 @@ async function fromGame(
   });
 }
 
+function signIn(identity: string) {
+  localStorage.setItem("test_identity", identity);
+  storeSession({});
+}
+
 // Outra aba escrevendo no localStorage: o navegador entrega um evento storage por chave alterada.
 async function otherTabWrites(entries: Record<string, string | null>) {
   await act(async () => {
@@ -284,7 +292,7 @@ describe("pedidos do jogo presos ao jogo que os fez", () => {
   });
 
   it("D: identidade do jogo A que chega depois da navegação não chega ao jogo B", async () => {
-    storeSession({ token: "tok_ana" });
+    signIn("tok_ana");
     await open("jogo-a");
     await startGame();
     expect(server.state.pendingIdentity.map((p) => p.gameId)).toEqual(["game_a"]);
@@ -351,7 +359,7 @@ describe("pedidos do jogo presos ao jogo que os fez", () => {
   });
 
   it("G: reiniciar o quadro não reaproveita o token nem o pedido da sessão anterior", async () => {
-    storeSession({ token: "tok_ana" });
+    signIn("tok_ana");
     await open("jogo-a");
     await startGame();
     await act(async () => server.state.pendingIdentity[0].resolve("tok_sessao_1"));
@@ -373,7 +381,7 @@ describe("pedidos do jogo presos ao jogo que os fez", () => {
   });
 
   it("G: token pedido antes do retry e entregue depois é descartado", async () => {
-    storeSession({ token: "tok_ana" });
+    signIn("tok_ana");
     await open("jogo-a");
     await startGame();
     await fromGame("jogo-a", { type: "enois:error", version: 1 });
@@ -390,7 +398,7 @@ describe("pedidos do jogo presos ao jogo que os fez", () => {
 
 describe("pedidos do jogo presos à conta que iniciou o quadro", () => {
   it("trocar de conta na mesma aba descarta o pedido aberto e os pedidos seguintes", async () => {
-    storeSession({ token: "tok_ana" });
+    signIn("tok_ana");
     await open("jogo-a");
     await startGame();
     await fromGame("jogo-a", { type: "enois:spend", amount: 5000, requestId: "r-ana" });
@@ -399,7 +407,7 @@ describe("pedidos do jogo presos à conta que iniciou o quadro", () => {
 
     await act(async () => {
       clearSession();
-      storeSession({ token: "tok_bia" });
+      signIn("tok_bia");
     });
     await waitFor(() => expect(dialog()).toBeNull());
     expect(document.body.textContent).toContain(texts.games.game.accountChanged);
@@ -421,14 +429,18 @@ describe("pedidos do jogo presos à conta que iniciou o quadro", () => {
   });
 
   it("trocar de conta em outra aba também descarta o pedido aberto", async () => {
-    storeSession({ token: "tok_ana" });
+    signIn("tok_ana");
     await open("jogo-a");
     await startGame();
     await fromGame("jogo-a", { type: "enois:share", texto: "conquista da ana" });
     await waitFor(() => expect(dialog()).not.toBeNull());
     const quadro = frame();
 
-    await otherTabWrites({ session_token: "tok_bia", session_id: "outra-sessao" });
+    await otherTabWrites({
+      test_identity: "tok_bia",
+      session_active: "1",
+      session_id: "outra-sessao",
+    });
     await waitFor(() => expect(dialog()).toBeNull());
     await waitFor(() => expect(button(texts.games.game.favorite)?.disabled).toBe(false));
     expect(frame()).toBe(quadro);
@@ -436,7 +448,7 @@ describe("pedidos do jogo presos à conta que iniciou o quadro", () => {
   });
 
   it("o token da conta anterior não é entregue depois da troca", async () => {
-    storeSession({ token: "tok_ana" });
+    signIn("tok_ana");
     await open("jogo-a");
     await startGame();
     await act(async () => server.state.pendingIdentity[0].resolve("tok_jogo_ana"));
@@ -444,7 +456,7 @@ describe("pedidos do jogo presos à conta que iniciou o quadro", () => {
 
     await act(async () => {
       clearSession();
-      storeSession({ token: "tok_bia" });
+      signIn("tok_bia");
     });
     const post = vi.spyOn(frame().contentWindow!, "postMessage");
     await fromGame("jogo-a", { type: "enois:identity" });
@@ -477,14 +489,14 @@ describe("favoritos e a sessão de quem lê", () => {
     await open("jogo-a");
     await waitFor(() => expect(favoriteButton()?.textContent).toContain(texts.games.game.favorite));
 
-    await act(async () => storeSession({ token: "tok_ana" }));
+    await act(async () => signIn("tok_ana"));
     await waitFor(() =>
       expect(favoriteButton()?.textContent).toContain(texts.games.game.unfavorite),
     );
   });
 
   it("C: desfavoritar deixa tela e API de acordo", async () => {
-    storeSession({ token: "tok_ana" });
+    signIn("tok_ana");
     await open("jogo-a");
     await waitFor(() =>
       expect(favoriteButton()?.textContent).toContain(texts.games.game.unfavorite),
@@ -498,7 +510,7 @@ describe("favoritos e a sessão de quem lê", () => {
   });
 
   it("D: sair não deixa os dados da sessão anterior na cache", async () => {
-    storeSession({ token: "tok_ana" });
+    signIn("tok_ana");
     await open("jogo-a");
     await waitFor(() =>
       expect(favoriteButton()?.textContent).toContain(texts.games.game.unfavorite),
@@ -515,7 +527,7 @@ describe("favoritos e a sessão de quem lê", () => {
   });
 
   it("E: trocar da conta A para a B não leva os favoritos de A", async () => {
-    storeSession({ token: "tok_ana" });
+    signIn("tok_ana");
     await open("jogo-a");
     await waitFor(() =>
       expect(favoriteButton()?.textContent).toContain(texts.games.game.unfavorite),
@@ -523,7 +535,7 @@ describe("favoritos e a sessão de quem lê", () => {
 
     await act(async () => {
       clearSession();
-      storeSession({ token: "tok_bia" });
+      signIn("tok_bia");
     });
     await waitFor(() => expect(favoriteButton()?.textContent).toContain(texts.games.game.favorite));
   });
@@ -532,35 +544,29 @@ describe("favoritos e a sessão de quem lê", () => {
     await open("jogo-a");
     await waitFor(() => expect(favoriteButton()?.textContent).toContain(texts.games.game.favorite));
 
-    localStorage.setItem("session_token", "tok_ana");
-    await act(async () => {
-      window.dispatchEvent(
-        new StorageEvent("storage", {
-          key: "session_token",
-          oldValue: null,
-          newValue: "tok_ana",
-          storageArea: localStorage,
-        }),
-      );
-    });
+    await otherTabWrites({ test_identity: "tok_ana", session_active: "1" });
     await waitFor(() =>
       expect(favoriteButton()?.textContent).toContain(texts.games.game.unfavorite),
     );
   });
 
   it("E: outra aba troca a conta A pela B sem passar por sessão vazia", async () => {
-    storeSession({ token: "tok_ana" });
+    signIn("tok_ana");
     await open("jogo-a");
     await waitFor(() =>
       expect(favoriteButton()?.textContent).toContain(texts.games.game.unfavorite),
     );
 
-    await otherTabWrites({ session_token: "tok_bia", session_id: "sessao-da-bia" });
+    await otherTabWrites({
+      test_identity: "tok_bia",
+      session_active: "1",
+      session_id: "sessao-da-bia",
+    });
     await waitFor(() => expect(favoriteButton()?.textContent).toContain(texts.games.game.favorite));
   });
 
   it("E: renovar o token em outra aba não zera a cache", async () => {
-    storeSession({ token: "tok_ana" });
+    signIn("tok_ana");
     await open("jogo-a");
     await waitFor(() =>
       expect(favoriteButton()?.textContent).toContain(texts.games.game.unfavorite),
@@ -568,14 +574,14 @@ describe("favoritos e a sessão de quem lê", () => {
     await flush();
     const before = vi.mocked(gamesApi.bySlug).mock.calls.length;
 
-    await otherTabWrites({ session_token: "tok_ana_renovado", refresh_token: "r2" });
+    await otherTabWrites({ session_expires_at: "2030-01-01T00:00:00Z" });
     await flush();
     expect(vi.mocked(gamesApi.bySlug).mock.calls.length).toBe(before);
     expect(favoriteButton()?.textContent).toContain(texts.games.game.unfavorite);
   });
 
   it("F: falha na API não finge que guardou", async () => {
-    storeSession({ token: "tok_bia" });
+    signIn("tok_bia");
     server.state.failFavorite = true;
     await open("jogo-a");
     await waitFor(() => expect(favoriteButton()?.textContent).toContain(texts.games.game.favorite));
@@ -591,22 +597,30 @@ describe("favoritos e a sessão de quem lê", () => {
 
 describe("ferramentas do dono na página do jogo", () => {
   it("só o dono vê Editar e Nova novidade", async () => {
-    storeSession({ token: "tok_ana" });
+    signIn("tok_ana");
     await open("jogo-a");
     await waitFor(() => expect(button(texts.games.game.unfavorite)).toBeDefined());
     expect(button(texts.games.panel.edit)).toBeUndefined();
 
-    await otherTabWrites({ session_token: "tok_dev", session_id: "sessao-do-dev" });
+    await otherTabWrites({
+      test_identity: "tok_dev",
+      session_active: "1",
+      session_id: "sessao-do-dev",
+    });
     await waitFor(() => expect(button(texts.games.panel.edit)).toBeDefined());
     expect(button(texts.games.panel.newUpdate)).toBeDefined();
   });
 
   it("trocar a conta do dono por outra tira os botões de edição", async () => {
-    storeSession({ token: "tok_dev" });
+    signIn("tok_dev");
     await open("jogo-a");
     await waitFor(() => expect(button(texts.games.panel.edit)).toBeDefined());
 
-    await otherTabWrites({ session_token: "tok_bia", session_id: "sessao-da-bia" });
+    await otherTabWrites({
+      test_identity: "tok_bia",
+      session_active: "1",
+      session_id: "sessao-da-bia",
+    });
     await waitFor(() => expect(button(texts.games.panel.edit)).toBeUndefined());
     expect(button(texts.games.panel.newUpdate)).toBeUndefined();
   });
@@ -632,7 +646,10 @@ describe("hidratação da página do jogo", () => {
     const { hydrateRoot } = await import("react-dom/client");
 
     for (const sessionToken of [null, "tok_ana"]) {
-      if (sessionToken) localStorage.setItem("session_token", sessionToken);
+      if (sessionToken) {
+        localStorage.setItem("test_identity", sessionToken);
+        localStorage.setItem("session_active", "1");
+      }
       const tree = (client: QueryClient, appRouter: ReturnType<typeof makeRouter>) => (
         <QueryClientProvider client={client}>
           <ToastProvider>

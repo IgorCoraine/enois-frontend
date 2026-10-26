@@ -1,10 +1,11 @@
 import { useCallback, useState } from "react";
 
+import { texts } from "@/texts";
 import type { UploadInput } from "@/types/media-upload/upload-input";
 import type { UploadResult } from "@/types/media-upload/upload-result";
 import type { UploadState } from "@/types/media-upload/upload-state";
 
-import { randomUUID } from "@/lib/api-client";
+import { ApiError, randomUUID } from "@/lib/api-client";
 import { mediaApi } from "@/lib/api/media";
 
 /**
@@ -13,6 +14,19 @@ import { mediaApi } from "@/lib/api/media";
  * continua sendo quem recusa de verdade.
  */
 export const MAX_MEDIA_BYTES = 500 * 1024 * 1024;
+
+/** The API refuses a file type the upload purpose does not take: say it in plain words. */
+export function uploadError(err: unknown): unknown {
+  if (err instanceof ApiError && err.code === "MEDIA_TYPE_NOT_ALLOWED") {
+    return new ApiError(
+      err.status,
+      err.code,
+      texts.errors.knownCodes.MEDIA_TYPE_NOT_ALLOWED,
+      err.path,
+    );
+  }
+  return err;
+}
 
 function sanitizeName(name: string): string {
   return name.replace(/[^a-zA-Z0-9.-]/g, "_");
@@ -59,7 +73,8 @@ export function useMediaUpload() {
 
       setState({ status: "done", progress: 100 });
       return { mediaId: id, cdnUrl };
-    } catch (err) {
+    } catch (caught) {
+      const err = uploadError(caught);
       const msg = err instanceof Error ? err.message : "Upload falhou";
       setState({ status: "error", progress: 0, error: msg });
       throw err;
@@ -101,7 +116,8 @@ export function useMediaUpload() {
         await mediaApi.uploadToSignedUrl(uploadUrl, file, uploadHeaders ?? {});
         results.push({ mediaId: id, cdnUrl });
         setState((s) => ({ ...s, progress: Math.round(((i + 1) / files.length) * 100) }));
-      } catch (err) {
+      } catch (caught) {
+        const err = uploadError(caught);
         const msg = err instanceof Error ? err.message : "Upload falhou";
         setState({ status: "error", progress: 0, error: msg });
         throw err;

@@ -64,7 +64,9 @@ function ResetPassword() {
       await authApi.resetPassword(token, parsed.data.password);
       setDone(true);
     } catch (err) {
-      if (err instanceof ApiError) {
+      if (err instanceof ApiError && err.code === "TOKEN_ALREADY_USED") {
+        setErrors({ form: texts.auth.reset.usedLink });
+      } else if (err instanceof ApiError) {
         setErrors({ form: err.message });
       } else {
         setErrors({ form: texts.errors.unexpected });

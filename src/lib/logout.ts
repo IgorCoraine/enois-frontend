@@ -1,14 +1,18 @@
-import { authApi, clearSession } from "./api";
+import { ApiError, authApi, clearSession } from "./api";
 
 /**
- * Encerra a sessão: avisa o backend (best-effort), limpa os tokens locais e
- * recarrega a aplicação para descartar qualquer estado em memória.
+ * Ends the session: the API revokes it and clears the HttpOnly cookies, then the local state is
+ * dropped and the app reloads to discard anything held in memory.
+ *
+ * Returns false when the API could not confirm: the cookies would still be valid, so showing the
+ * person as logged out would be a lie (shared devices). A 401 means the API no longer knows the
+ * session, which is the same outcome as a confirmed logout.
  */
-export async function logout(): Promise<void> {
+export async function logout(): Promise<boolean> {
   try {
     await authApi.logout();
-  } catch {
-    // O token pode já estar inválido no backend — a limpeza local acontece de qualquer forma.
+  } catch (error) {
+    if (!(error instanceof ApiError && error.status === 401)) return false;
   }
 
   clearSession();
@@ -16,4 +20,5 @@ export async function logout(): Promise<void> {
   if (typeof window !== "undefined") {
     window.location.href = "/entrar";
   }
+  return true;
 }

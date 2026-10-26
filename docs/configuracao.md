@@ -3,15 +3,13 @@
 ## `.env` - Variáveis de Ambiente
 
 ```env
-VITE_API_BACKEND=https://rede.fly.dev/api
-VITE_IMAGEKIT_PUBLIC_KEY=public_...
-VITE_IMAGEKIT_UPLOAD_URL=https://upload.imagekit.io/api/v1/files/upload
-VITE_IMAGEKIT_URL_ENDPOINT=https://ik.imagekit.io/socialcoisa
-IMAGEKIT_PRIVATE_KEY=private_...   # server-only
+VITE_API_BACKEND=https://api.enois.ia.br/api
+VITE_SITE_URL=https://enois.ia.br
+VITE_IMAGEKIT_URL_ENDPOINT=https://ik.imagekit.io/socialcoisa   # opcional, URLs antigas
 ```
 
-**Variáveis VITE_** são públicas e enviadas ao cliente.
-**IMAGEKIT_PRIVATE_KEY** é server-only (usada em `imagekit-auth.fn.ts`).
+**Variáveis VITE_** são públicas e enviadas ao cliente. O front não usa segredo: o envio pelo ImageKit
+está desativado e não há server function com chave privada.
 
 ## `package.json`
 

@@ -356,12 +356,27 @@ export const texts = {
       http: (status: number) => `HTTP ${status}`,
       postPath: (path: string) => `POST ${path}`,
     },
+    /** Replaces the API message for codes whose raw text is not fit for the screen. */
+    apiMessages: {
+      /** Escrita com cookie de sessão sem o header anti-CSRF: só acontece com página desatualizada. */
+      CSRF_REQUIRED:
+        "Não foi possível confirmar que o pedido veio do Énóis. Recarregue a página e tente de novo.",
+      UNSAFE_LINK:
+        "Um dos links não é permitido. Use endereços que comecem com http://, https:// ou mailto:.",
+      /** O mesmo código de verificação chegou duas vezes (ex.: clique duplo); só o primeiro vale. */
+      TWO_FACTOR_CHALLENGE_ALREADY_USED:
+        "Este código já foi usado. Se você já entrou, recarregue a página; senão, comece o login de novo.",
+    } as Record<string, string>,
     knownCodes: {
       NETWORK_ERROR:
         "O navegador não conseguiu falar com a API. Se você estiver rodando localmente, verifique se o backend está em execução (ex.: `docker compose up` ou o servidor Java na porta 8081) e se a variável VITE_API_BACKEND no arquivo .env aponta para ele.",
       INVALID_CREDENTIALS:
         "E-mail ou senha incorretos. Confira os dados ou use 'Esqueci minha senha'.",
       SESSION_EXPIRED: "Sua sessão expirou. Entre novamente.",
+      MEDIA_TYPE_NOT_ALLOWED:
+        "Esse tipo de arquivo não é aceito aqui. Foto de perfil, capa, banner e ícones só aceitam imagem; currículo só aceita PDF.",
+      IMPORT_TOO_LARGE:
+        "Esse arquivo do LinkedIn é grande demais para importar. Baixe de novo só os dados do perfil (sem mensagens e conexões) e tente outra vez.",
       IDEMPOTENCY_KEY_REQUIRED:
         "O backend rejeitou a requisição por falta de Idempotency-Key. Recarregue a página; se o problema persistir, há um bug no front-end (src/lib/api-client.ts).",
     },
@@ -474,7 +489,7 @@ export const texts = {
     pending: {
       title: "Confirme seu e-mail",
       description: (email: string) =>
-        `Enviamos um link de confirmação para ${email}. Sua conta só é criada depois que você abrir o link.`,
+        `Se este e-mail puder ser usado, você vai receber uma mensagem em ${email} com o próximo passo. A conta só é criada depois que você abrir o link.`,
       step1: "O link vale por 24 horas e só pode ser usado uma vez.",
       step2: "Confira a caixa de spam se não encontrar em alguns minutos.",
       step3: "A conta nasce (e o acesso libera) assim que o e-mail for confirmado.",
@@ -538,7 +553,15 @@ export const texts = {
       email2faConfirm: "Confirmar código",
       email2faDisable: "Desativar",
       passwordRequired: "Senha atual",
-      passwordHelp: "Confirme sua senha para desativar.",
+      passwordHelp: "Confirme sua senha atual.",
+      /** Ligar ou desligar o segundo fator encerra a sessão nos outros aparelhos. */
+      otherDevicesNotice: "Ativar ou desativar encerra sua sessão nos outros aparelhos.",
+      /** Depois de 5 códigos errados o desafio é invalidado, mesmo para o código certo. */
+      tooManyAttempts:
+        "Muitas tentativas com código errado. Por segurança, comece o login de novo com e-mail e senha.",
+      /** No código por e-mail, reenviar gera um código novo e zera as tentativas. */
+      tooManyAttemptsEmail:
+        "Muitas tentativas com código errado. Peça um novo código por e-mail e tente de novo.",
       backupLeft: (count: number) =>
         `${count} código${count === 1 ? "" : "s"} de recuperação ainda válido${count === 1 ? "" : "s"}.`,
       error: "Não foi possível concluir agora. Tente novamente.",
@@ -641,6 +664,7 @@ export const texts = {
     },
     reset: {
       invalidLink: "Link inválido ou expirado. Solicite uma nova redefinição de senha.",
+      usedLink: "Este link já foi usado. Solicite uma nova redefinição de senha.",
       successTitle: "Senha redefinida!",
       successDescription: "Sua senha foi atualizada com sucesso. Já pode entrar na sua conta.",
       enterNow: "Entrar agora ",
@@ -824,6 +848,9 @@ export const texts = {
       apoie: "Apoie o Énóis",
       deleteAccount: "Excluir conta",
       logout: "Sair",
+      /** O backend não confirmou: os cookies da sessão continuariam valendo. */
+      logoutFailed: "Não foi possível sair agora. Sua sessão continua ativa neste aparelho.",
+      logoutRetry: "Tentar de novo",
       loggingOut: "Saindo...",
       pushOn: "Notificações no celular ativadas",
       pushOff: "Ativar notificações no celular",
@@ -2923,6 +2950,10 @@ export const texts = {
     messagesDeleted: "Mensagens apagadas para você. O outro participante continua vendo.",
     messagesDeleteError: "Não foi possível apagar. Tente novamente.",
     restoreError: "Não foi possível restaurar. Tente novamente.",
+    /** Menor de idade só conversa com quem tem conexão aceita (regra do backend). */
+    minorRestricted:
+      "Para proteger menores de idade, a conversa só é possível depois de uma conexão aceita.",
+    openError: "Não foi possível abrir a conversa. Tente novamente.",
     selectConversation: "Selecione uma conversa ou comece uma nova para exibir as mensagens",
     noMessages: "Nenhuma mensagem ainda",
     inputPlaceholder: "Escreva uma mensagem...",

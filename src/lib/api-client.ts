@@ -1,3 +1,4 @@
+import { texts } from "@/texts";
 import { HttpStatus } from "@/types/application/api/http-status";
 import type { RefreshOutcome } from "@/types/application/api/refresh-outcome";
 import type { RequestOptions } from "@/types/application/api/request-options";
@@ -7,7 +8,8 @@ import { clientOriginHeader } from "./api/client-origin";
 import { clearAuthHint } from "./auth-hint";
 import { getDeviceId } from "./device-id";
 import { resetSessionScopedData } from "./query-client";
-import { dropSessionKey } from "./session-key";
+import { dropLegacyTokens, hasSessionFlag, legacyRefreshToken, storeSession } from "./session";
+import { SESSION_FLAG_KEY, dropSessionKey } from "./session-key";
 
 /**
  * Base da API.
@@ -53,16 +55,15 @@ export class ApiError extends Error {
   }
 }
 
-function getToken(): string | null {
-  if (typeof window === "undefined") return null;
-  return localStorage.getItem("session_token");
-}
-
-function authHeaders(): Record<string, string> {
-  const token = getToken();
+/**
+ * Headers every API call carries. The session travels in HttpOnly cookies (hence
+ * `credentials: "include"` on every fetch); `X-CSRF-Protection` is the custom header the API
+ * requires on cookie-authenticated writes: a cross-site form cannot set it, and a cross-origin
+ * script needs a CORS preflight that only allowlisted origins pass.
+ */
+export function sessionHeaders(): Record<string, string> {
   // Toda requisição declara a origem do app; o backend recusa sem uma origem cadastrada.
-  const headers: Record<string, string> = { ...clientOriginHeader() };
-  if (token) headers["X-Session-Token"] = token;
+  const headers: Record<string, string> = { ...clientOriginHeader(), "X-CSRF-Protection": "1" };
   // Identificador opaco do dispositivo (não é MAC): correlaciona requisições e uploads nos logs.
   const deviceId = getDeviceId();
   if (deviceId) headers["X-Device-Id"] = deviceId;
@@ -127,9 +128,16 @@ function sleep(ms: number): Promise<void> {
 
 let refreshPromise: Promise<RefreshOutcome> | null = null;
 
-function refreshTokenValue(): string | null {
-  if (typeof window === "undefined") return null;
-  return localStorage.getItem("refresh_token");
+/**
+ * Ceiling for the session calls made while holding the cross-tab refresh lock: a stalled request
+ * would otherwise block the refresh of every tab. A timeout counts as "unavailable".
+ */
+const SESSION_CALL_TIMEOUT_MS = 15_000;
+
+function sessionCallSignal(): AbortSignal | undefined {
+  return typeof AbortSignal !== "undefined" && typeof AbortSignal.timeout === "function"
+    ? AbortSignal.timeout(SESSION_CALL_TIMEOUT_MS)
+    : undefined;
 }
 
 function sessionExpiresAt(): number | null {
@@ -144,38 +152,81 @@ function sessionExpiresAt(): number | null {
  * Renova a sessao uma unica vez, mesmo com varias chamadas concorrentes: todas aguardam a MESMA
  * promessa. Sem isso, cada 401 paralelo disparava um refresh proprio e rotacionava o token varias
  * vezes, derrubando a sessao.
+ *
+ * `expiryBefore` is the expiry the caller's credentials were sent with: a 401 for a request sent
+ * before another refresh completed must compare against THAT, or it rotates the token again.
  */
-function refreshSession(): Promise<RefreshOutcome> {
+function refreshSession(expiryBefore = sessionExpiresAt()): Promise<RefreshOutcome> {
   if (refreshPromise) return refreshPromise;
-  refreshPromise = doRefresh().finally(() => {
+  refreshPromise = withRefreshLock(() => {
+    // Another tab renewed while this one waited for the lock: the shared cookies are already new,
+    // and refreshing again would rotate the token a second time for nothing.
+    const expiryNow = sessionExpiresAt();
+    if (
+      expiryNow !== null &&
+      (expiryBefore === null || expiryNow > expiryBefore) &&
+      expiryNow - Date.now() > REFRESH_WINDOW_MS
+    ) {
+      return Promise.resolve<RefreshOutcome>("renewed");
+    }
+    // While a pre-cookie refresh token is still stored, renewing means trading it for cookies.
+    return doRefresh(legacyRefreshToken() ?? undefined);
+  }).finally(() => {
     refreshPromise = null;
   });
   return refreshPromise;
 }
 
-async function doRefresh(): Promise<RefreshOutcome> {
-  const token = refreshTokenValue();
-  if (!token) return "refused";
+/**
+ * Renews the session now and stores its expiry. For entry points that receive the cookies without
+ * an expiry in the body (OAuth return): without it the proactive refresh never runs.
+ */
+export function renewSession(): Promise<RefreshOutcome> {
+  return refreshSession();
+}
 
+/**
+ * One refresh at a time across every tab of the origin (Web Locks). Without locks support the
+ * per-tab promise above still dedupes, and the /auth/me check covers a cross-tab rotation.
+ */
+async function withRefreshLock(task: () => Promise<RefreshOutcome>): Promise<RefreshOutcome> {
+  const locks = typeof navigator !== "undefined" ? navigator.locks : undefined;
+  if (!locks?.request) return task();
+  return await locks.request("enois-refresh", task);
+}
+
+/**
+ * Renews through the `enois_refresh` cookie (no body). `legacyRefreshToken` is only for the one-time
+ * move of a session that still had its tokens in localStorage: the API answers with the cookies.
+ */
+async function doRefresh(legacyToken?: string): Promise<RefreshOutcome> {
   try {
     const response = await fetch(`${baseUrl()}/auth/refresh`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", ...clientOriginHeader() },
-      body: JSON.stringify({ refreshToken: token }),
+      credentials: "include",
+      headers: legacyToken
+        ? { "Content-Type": "application/json", ...sessionHeaders() }
+        : sessionHeaders(),
+      body: legacyToken ? JSON.stringify({ refreshToken: legacyToken }) : undefined,
+      signal: sessionCallSignal(),
     });
 
-    // So a recusa EXPLICITA (401/403) significa sessao encerrada. Um 429 do limitador ou um 502
-    // durante o deploy sao falhas do servidor, nao prova de que a sessao morreu — deslogar aqui
-    // era o que fazia a pessoa cair no login "sem motivo".
-    if (response.status === 401 || response.status === 403) {
-      // O backend GIRA o refresh token a cada renovacao (o usado e revogado). Como o armazenamento
-      // e compartilhado entre as abas do navegador, outra aba pode ter renovado enquanto esta
-      // chamada corria: o token guardado ja e o NOVO e a sessao nova esta viva — o 401 aqui e so
-      // o token velho. Encerrar a sessao apagava a sessao da outra aba e as DUAS caiam no login.
-      const guardado = refreshTokenValue();
-      if (guardado !== null && guardado !== token) {
+    // So a recusa EXPLICITA (400/401/403) significa sessao encerrada — 400 e o refresh sem cookie
+    // (cookies vencidos ou apagados). Um 429 do limitador ou um 502 durante o deploy sao falhas do
+    // servidor, nao prova de que a sessao morreu — deslogar aqui era o que fazia a pessoa cair no
+    // login "sem motivo".
+    if (response.status === 400 || response.status === 401 || response.status === 403) {
+      // The API rotates the refresh token on every renewal and the cookie jar is shared by every
+      // tab: another tab may have renewed while this call was in flight, so this 401 is only the
+      // old token. Ending the session here would log BOTH tabs out; ask the API first.
+      // Same for a legacy token: another tab may have traded it first (without Web Locks).
+      const session = await sessionStillValid();
+      if (session === "valid") {
+        if (legacyToken) dropLegacyTokens();
         return "renewed";
       }
+      // Could not tell (network/CORS, e.g. a limiter 429 without CORS headers): keep the session.
+      if (session === "unknown") return "unavailable";
       clearSession();
       return "refused";
     }
@@ -185,10 +236,8 @@ async function doRefresh(): Promise<RefreshOutcome> {
 
     const data = await response.json();
     const body = data?.body ?? data;
-    localStorage.setItem("session_token", body.token);
-    localStorage.setItem("refresh_token", body.refreshToken);
-    localStorage.setItem("session_expires_at", body.expiresAt);
-    localStorage.setItem("refresh_expires_at", body.refreshExpiresAt);
+    if (legacyToken) dropLegacyTokens();
+    storeSession({ expiresAt: body?.expiresAt, refreshExpiresAt: body?.refreshExpiresAt });
     return "renewed";
   } catch {
     // Falha de rede nao encerra a sessao: o token pode continuar valido. Quem decide e o 401.
@@ -196,12 +245,36 @@ async function doRefresh(): Promise<RefreshOutcome> {
   }
 }
 
+async function sessionStillValid(): Promise<"valid" | "invalid" | "unknown"> {
+  try {
+    const response = await fetch(`${baseUrl()}/auth/me`, {
+      credentials: "include",
+      headers: sessionHeaders(),
+      signal: sessionCallSignal(),
+    });
+    if (response.ok) return "valid";
+    return response.status === 401 || response.status === 403 ? "invalid" : "unknown";
+  } catch {
+    return "unknown";
+  }
+}
+
+/**
+ * Past the stored refresh expiry the refresh cookie is gone too: the session cannot come back, so
+ * the "logged in" flag is dropped instead of leaving a shell that only fails.
+ */
+function dropExpiredSession(): void {
+  if (typeof window === "undefined" || !hasSessionFlag()) return;
+  const refreshExpiresAt = Date.parse(localStorage.getItem("refresh_expires_at") ?? "");
+  if (!Number.isNaN(refreshExpiresAt) && refreshExpiresAt <= Date.now()) clearSession();
+}
+
 /** Havendo sessao perto de expirar, renova antes da requisicao (evita o 401 e a ida ao login). */
 async function refreshIfNeeded(): Promise<void> {
   const expiresAt = sessionExpiresAt();
   if (expiresAt === null) return;
   if (expiresAt - Date.now() > REFRESH_WINDOW_MS) return;
-  if (!refreshTokenValue()) return;
+  if (!hasSessionFlag()) return;
   await refreshSession();
 }
 
@@ -212,6 +285,15 @@ async function refreshIfNeeded(): Promise<void> {
 // bfcache ou recuperar a rede nao disparam esse evento em varias plataformas (iOS principalmente),
 // e a pessoa cai no login sem entender. `pageshow` e `online` fecham essa lacuna.
 if (typeof window !== "undefined") {
+  // One-time move off localStorage tokens: the old refresh token is traded for the cookies. The
+  // person stays in the logged-in shell meanwhile (flag set now): a refusal clears flag and token,
+  // a network/server failure keeps both, so the next refresh or load trades the token again. A
+  // 401 meanwhile waits for this same in-flight refresh instead of ending the session.
+  if (legacyRefreshToken()) {
+    localStorage.setItem(SESSION_FLAG_KEY, "1");
+    void refreshSession();
+  }
+
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") {
       void refreshIfNeeded();
@@ -228,9 +310,9 @@ if (typeof window !== "undefined") {
 }
 
 export function clearSession() {
-  const hadSession = localStorage.getItem("session_token") !== null;
-  localStorage.removeItem("session_token");
-  localStorage.removeItem("refresh_token");
+  const hadSession = hasSessionFlag();
+  localStorage.removeItem(SESSION_FLAG_KEY);
+  dropLegacyTokens();
   localStorage.removeItem("session_expires_at");
   localStorage.removeItem("refresh_expires_at");
   localStorage.removeItem("current_user");
@@ -245,16 +327,23 @@ async function request<T>(
   body?: unknown,
   opts?: RequestOptions,
 ): Promise<T> {
+  dropExpiredSession();
   // Renova proativamente antes de sair com um token que esta vencendo (as rotas de auth cuidam
   // da propria sessao e nao passam por aqui).
   if (!path.startsWith("/auth/")) {
     await refreshIfNeeded();
   }
 
+  // FormData (multipart uploads/imports) goes as-is: the browser sets the boundary header.
+  const multipart = typeof FormData !== "undefined" && body instanceof FormData;
+  const payload = multipart ? (body as FormData) : body ? JSON.stringify(body) : undefined;
   const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-    ...authHeaders(),
+    ...(multipart ? {} : { "Content-Type": "application/json" }),
+    ...sessionHeaders(),
   };
+  const hadSession = hasSessionFlag();
+  // Expiry the cookies had when this request left: decides later whether a 401 is already stale.
+  const expiryAtSend = sessionExpiresAt();
 
   if (opts?.idempotent) {
     Object.assign(headers, idemKey());
@@ -268,8 +357,9 @@ async function request<T>(
   try {
     response = await fetch(`${baseUrl()}${path}`, {
       method,
+      credentials: "include",
       headers,
-      body: body ? JSON.stringify(body) : undefined,
+      body: payload,
     });
     // Limite do proxy/CDN: a recusa vem sem CORS e o navegador a reporta como falha de rede.
     // Em escrita idempotente (todas as nossas), esperar o Retry-After e repetir uma vez é
@@ -280,8 +370,9 @@ async function request<T>(
         await sleep(seconds * 1000);
         response = await fetch(`${baseUrl()}${path}`, {
           method,
+          credentials: "include",
           headers,
-          body: body ? JSON.stringify(body) : undefined,
+          body: payload,
         });
       }
     }
@@ -294,8 +385,9 @@ async function request<T>(
         await sleep(NETWORK_RETRY_DELAY_MS);
         response = await fetch(`${baseUrl()}${path}`, {
           method,
+          credentials: "include",
           headers,
-          body: body ? JSON.stringify(body) : undefined,
+          body: payload,
         });
       } catch {
         throw new ApiError(
@@ -316,12 +408,11 @@ async function request<T>(
     void firstFailure;
   }
 
-  const hadSession = Boolean(headers["X-Session-Token"]);
   // 401 e sessao invalida/expirada (tenta refresh e, se nao der, manda para o login). 403 e
   // PERMISSAO negada, nao sessao: derrubar o usuario aqui era um erro (quem tem conta pendente de
   // verificacao, por exemplo, era desconectado em vez de ler o aviso).
   if (response.status === HttpStatus.UNAUTHORIZED && hadSession && !path.startsWith("/auth/")) {
-    const refreshed = await refreshSession();
+    const refreshed = await refreshSession(expiryAtSend);
 
     if (refreshed === "unavailable") {
       // Servidor instavel (429/5xx/rede). NAO encerra a sessao: a proxima tentativa pode dar certo
@@ -335,12 +426,12 @@ async function request<T>(
     }
 
     if (refreshed === "renewed") {
-      headers["X-Session-Token"] = getToken() ?? "";
       try {
         response = await fetch(`${baseUrl()}${path}`, {
           method,
+          credentials: "include",
           headers,
-          body: body ? JSON.stringify(body) : undefined,
+          body: payload,
         });
       } catch {
         throw new ApiError(
@@ -428,7 +519,7 @@ async function fail<T>(response: Response, path: string, hadSession: boolean): P
   throw new ApiError(
     response.status,
     errorBody?.code,
-    errorBody?.message ?? response.statusText,
+    texts.errors.apiMessages[errorBody?.code] ?? errorBody?.message ?? response.statusText,
     path,
     retryAfter ? Number.parseInt(retryAfter, 10) || undefined : undefined,
   );
@@ -465,5 +556,3 @@ export function buildQuery(
   const str = search.toString();
   return str ? `?${str}` : "";
 }
-
-export { getToken as getSessionToken };

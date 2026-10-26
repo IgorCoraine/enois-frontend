@@ -4,13 +4,14 @@ import { getCookie } from "@tanstack/react-start/server";
 /**
  * Pista de "tem sessão" que o servidor consegue ler.
  *
- * O token mora no localStorage, que o SSR não enxerga: toda página logada saía do servidor com a
- * casca de visitante (botão "Entrar", sem menu) e trocava para a casca logada depois de hidratar —
- * a tela piscava em toda navegação com recarga. Este cookie diz só "tem sessão" (o valor é `1`,
- * nunca o token): o servidor desenha a casca certa e o cliente hidrata igual.
+ * Os cookies da sessão são HttpOnly e pertencem ao host da API, que o SSR não enxerga: toda
+ * página logada saía do servidor com a casca de visitante (botão "Entrar", sem menu) e trocava
+ * para a casca logada depois de hidratar — a tela piscava em toda navegação com recarga. Este
+ * cookie diz só "tem sessão" (o valor é `1`, nunca o token): o servidor desenha a casca certa e o
+ * cliente hidrata igual.
  *
- * Não autentica nada. A API continua exigindo o `X-Session-Token`; quem forjar o cookie só vê a
- * casca logada vazia, e o efeito em `useIsAuthenticated` corrige para visitante logo depois.
+ * Não autentica nada. A API continua exigindo a sessão (cookie HttpOnly); quem forjar o cookie só
+ * vê a casca logada vazia, e o efeito em `useIsAuthenticated` corrige para visitante logo depois.
  */
 export const AUTH_HINT_COOKIE = "enois_auth";
 
@@ -33,7 +34,7 @@ function hintInDocumentCookie(): boolean {
 }
 
 /**
- * Mantém a pista alinhada com o localStorage. Cobre quem já estava logado antes do cookie existir
+ * Mantém a pista alinhada com o indicador de sessão local. Cobre quem já estava logado antes do cookie existir
  * e os caminhos que apagam o token direto (sem passar por `clearSession`).
  */
 export function syncAuthHint(hasToken: boolean) {

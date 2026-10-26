@@ -7,7 +7,7 @@ import type { NavigationLinksProps } from "@/types/components/navigation/navigat
 import { Star } from "lucide-react";
 
 import { communitiesApi } from "@/lib/api";
-import { getSessionToken } from "@/lib/api-client";
+import { hasSessionFlag } from "@/lib/session";
 import { useDisabledModules } from "@/lib/use-personalization";
 import { cn } from "@/lib/utils";
 
@@ -27,7 +27,7 @@ export function NavigationLinks({
   const { data: mine } = useQuery({
     queryKey: ["my-communities"],
     queryFn: () => communitiesApi.mine(8),
-    enabled: Boolean(getSessionToken()),
+    enabled: hasSessionFlag(),
     staleTime: 30_000,
   });
   const myCommunities = mine?.items ?? [];
@@ -35,7 +35,7 @@ export function NavigationLinks({
   const { data: favorites } = useQuery({
     queryKey: COMMUNITY_FAVORITES_KEY,
     queryFn: () => communitiesApi.favorites(),
-    enabled: Boolean(getSessionToken()),
+    enabled: hasSessionFlag(),
     staleTime: 30_000,
   });
   const favoriteCommunities = favorites?.items ?? [];

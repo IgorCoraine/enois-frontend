@@ -1,8 +1,7 @@
 import type { LinkedinImportPreview } from "@/types/application/profile/linkedin-import-preview";
 import type { ResumeApplyPrefill } from "@/types/application/profile/resume-apply-prefill";
 
-import { ApiError, apiUrl, getSessionToken } from "../api-client";
-import { clientOriginHeader } from "./client-origin";
+import { ApiError, api } from "../api-client";
 
 /**
  * Importação via CURRÍCULO (PDF ou texto). Terceira origem do retrato profissional, ao lado
@@ -10,53 +9,40 @@ import { clientOriginHeader } from "./client-origin";
  * formato do LinkedIn — o front reaproveita as telas de revisão, nada é salvo automaticamente.
  */
 export const resumeImportApi = {
-  /**
-   * Sobe o currículo e devolve o retrato para revisão antes de salvar.
-   * Usa fetch direto (multipart), como o import do ZIP do LinkedIn.
-   */
-  importResume: async (file: File): Promise<LinkedinImportPreview> => {
-    const formData = new FormData();
-    formData.append("file", file);
-    const response = await fetch(apiUrl("/me/import/resume"), {
-      method: "POST",
-      headers: { "X-Session-Token": getSessionToken() ?? "", ...clientOriginHeader() },
-      body: formData,
-    });
-    if (!response.ok) {
-      const body = await response.json().catch(() => null);
-      throw new ApiError(
-        response.status,
-        body?.code,
-        resumeErrorMessage(body?.code, body?.message),
-      );
-    }
-    return (await response.json()) as LinkedinImportPreview;
-  },
+  /** Sobe o currículo e devolve o retrato para revisão antes de salvar (multipart). */
+  importResume: (file: File): Promise<LinkedinImportPreview> =>
+    uploadResume<LinkedinImportPreview>("/me/import/resume", file),
 
   /**
    * Preenche a inscrição da vaga com os dados do currículo: sobe o arquivo + o id da vaga e
    * recebe mensagem e respostas sugeridas. Só sugere — a inscrição continua no POST existente,
    * com a pessoa revisando antes de enviar.
    */
-  prefillApplication: async (jobId: string, file: File): Promise<ResumeApplyPrefill> => {
-    const formData = new FormData();
-    formData.append("file", file);
-    const response = await fetch(apiUrl(`/me/import/resume/prefill/${jobId}`), {
-      method: "POST",
-      headers: { "X-Session-Token": getSessionToken() ?? "", ...clientOriginHeader() },
-      body: formData,
-    });
-    if (!response.ok) {
-      const body = await response.json().catch(() => null);
+  prefillApplication: (jobId: string, file: File): Promise<ResumeApplyPrefill> =>
+    uploadResume<ResumeApplyPrefill>(`/me/import/resume/prefill/${jobId}`, file),
+};
+
+/**
+ * Multipart through the shared client, so it gets the same session handling (proactive refresh,
+ * 401 refresh-and-retry) as every other call; errors keep the friendly resume messages.
+ */
+async function uploadResume<T>(path: string, file: File): Promise<T> {
+  const formData = new FormData();
+  formData.append("file", file);
+  try {
+    return await api.post<T>(path, formData, { idempotent: false });
+  } catch (error) {
+    if (error instanceof ApiError && error.status !== 0) {
       throw new ApiError(
-        response.status,
-        body?.code,
-        resumeErrorMessage(body?.code, body?.message),
+        error.status,
+        error.code,
+        resumeErrorMessage(error.code, error.message),
+        error.path,
       );
     }
-    return (await response.json()) as ResumeApplyPrefill;
-  },
-};
+    throw error;
+  }
+}
 
 /**
  * Mensagem amigável por código de erro do backend (o DOC/DOCX orienta a exportar em PDF;

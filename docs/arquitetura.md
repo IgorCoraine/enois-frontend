@@ -46,14 +46,16 @@ Fornece:
 - **404** (`NotFoundComponent`) e **Error Boundary** (`ErrorComponent`)
 - **RootShell** - HTML shell com `<head>` e `<body>`
 
-### 5. Layout Principal (`src/components/app-shell.tsx`)
+### 5. Layout Principal (`src/components/authenticated-app-container.tsx`)
 
 Layout que envolve todas as páginas autenticadas:
 
 - **Header sticky** com logo, busca global, toggle de tema, notificações e avatar do perfil
-- **Sidebar de navegação** (desktop) com links para feed, rede, comunidades, mensagens, vagas, mentoria, eventos, salvos
-- **Navbar inferior** (mobile) com os mesmos links
+- **Sidebar de navegação** (desktop, ≥ 1024px) com links para feed, rede, comunidades, mensagens, vagas, mentoria, eventos, salvos
+- **Drawer lateral de navegação** (mobile/tablet, < 1024px) com os mesmos links
 - **Notificações** em popover com lista, marcação de lidas, e ação "Aceitar" para convites
+
+O limite da navegação é único: 1024px (`lg`). Abaixo dele o menu abre pelo hambúrguer (drawer); a partir dele, a sidebar fica visível.
 
 ### 6. Gerenciamento de Estado
 

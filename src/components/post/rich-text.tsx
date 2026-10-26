@@ -9,6 +9,7 @@ import type { RichNode } from "@/types/lib/rich-text/rich-node";
 import { isOwnMediaUrl, withImageKitOriginal } from "@/lib/api/media";
 import { splitByInlineMedia } from "@/lib/rich-text/inline-media";
 import { parseRichText } from "@/lib/rich-text/parse";
+import { safeHref } from "@/lib/safe-url";
 import { directMediaKind, gifMediaUrl } from "@/lib/shared-links";
 import { cn } from "@/lib/utils";
 
@@ -240,13 +241,13 @@ function renderInline(nodes: RichNode[], linkClass: string, mediaSpoiler = false
         if (isMidiaDireta(node.href)) {
           return renderMidia(node.href!, index, mediaSpoiler);
         }
-        if (!safeRichHref(node.href)) {
+        if (!safeHref(node.href)) {
           return <span key={index}>{inner}</span>;
         }
         return (
           <a
             key={index}
-            href={safeRichHref(node.href) ?? undefined}
+            href={safeHref(node.href) ?? undefined}
             target="_blank"
             rel="noopener noreferrer"
             className={cn("break-words", linkClass)}
@@ -275,7 +276,7 @@ function renderInline(nodes: RichNode[], linkClass: string, mediaSpoiler = false
         ) : (
           <a
             key={index}
-            href={node.href}
+            href={safeHref(node.href) ?? undefined}
             target="_blank"
             rel="noopener noreferrer"
             className={cn("break-words", linkClass)}
@@ -295,14 +296,6 @@ const HEADING_SIZE: Record<number, string> = {
   2: "text-base",
   3: "text-base",
 };
-
-/** Defesa extra na renderização: só http(s) e caminho relativo viram href (E-07). */
-function safeRichHref(href?: string | null): string | null {
-  if (!href) return null;
-  if (href.startsWith("/") || href.startsWith("#")) return href;
-  const scheme = /^([a-z][a-z0-9+.-]*):/i.exec(href)?.[1]?.toLowerCase();
-  return scheme === undefined || scheme === "http" || scheme === "https" ? href : null;
-}
 
 /** O endereço é MÍDIA direta (GIF de Giphy/Tenor, imagem/vídeo/áudio por extensão)? */
 function isMidiaDireta(href?: string | null): boolean {

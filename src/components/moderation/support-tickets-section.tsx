@@ -9,6 +9,7 @@ import { LifeBuoy } from "lucide-react";
 
 import { supportApi } from "@/lib/api";
 import { dataHora } from "@/lib/date/format";
+import { safeHref } from "@/lib/safe-url";
 import { cn } from "@/lib/utils";
 
 import { Button } from "@/components/ui/button";
@@ -153,7 +154,7 @@ export function SupportTicketsSection({
 
                 {ticket.githubIssueNumber != null && (
                   <a
-                    href={ticket.githubIssueUrl ?? "#"}
+                    href={safeHref(ticket.githubIssueUrl) ?? "#"}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="rounded-full border border-border-soft px-2 py-0.5 text-primary hover:underline"
@@ -183,7 +184,7 @@ export function SupportTicketsSection({
 
               {ticket.imageUrl && (
                 <a
-                  href={ticket.imageUrl}
+                  href={safeHref(ticket.imageUrl) ?? undefined}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-block text-xs text-primary hover:underline"

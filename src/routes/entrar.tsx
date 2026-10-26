@@ -18,10 +18,11 @@ import { Turnstile, type TurnstileInstance } from "@marsidev/react-turnstile";
 import { ArrowRight, Loader2, MailCheck, ShieldCheck } from "lucide-react";
 import { z } from "zod";
 
-import { ApiError, authApi } from "@/lib/api";
+import { ApiError, authApi, clearSession } from "@/lib/api";
 import { anoAtual } from "@/lib/date/format";
 import { ogMetas } from "@/lib/seo";
 import { storeSession } from "@/lib/session";
+import { twoFactorLockedMessage } from "@/lib/two-factor-locked";
 import { useAuthConfig } from "@/lib/use-auth-config";
 
 import { Button } from "@/components/ui/button";
@@ -344,9 +345,7 @@ function SignupForm(_props: AuthFormProps) {
       return;
     }
     setLoading(true);
-    localStorage.removeItem("session_token");
-    localStorage.removeItem("refresh_token");
-    localStorage.removeItem("current_user");
+    clearSession();
     try {
       // O cadastro não abre sessão: a conta nasce pendente até confirmar o e-mail.
       const result = await authApi.signup({
@@ -647,9 +646,7 @@ function LoginForm({ onDone, onForgot }: LoginFormProps) {
     setErrors({});
     setFormError(null);
     setLoading(true);
-    localStorage.removeItem("session_token");
-    localStorage.removeItem("refresh_token");
-    localStorage.removeItem("current_user");
+    clearSession();
     try {
       const result = await authApi.login({
         email: parsed.data.email,
@@ -788,6 +785,10 @@ function TwoFactorForm({
       storeSession(result);
       onDone();
     } catch (err) {
+      if (err instanceof ApiError && err.code === "TOO_MANY_ATTEMPTS") {
+        setError(new Error(twoFactorLockedMessage(challenge.method)));
+        return;
+      }
       setError(err instanceof Error ? err : new Error(texts.auth.twoFactor.error));
     } finally {
       setLoading(false);

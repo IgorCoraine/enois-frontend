@@ -1,7 +1,7 @@
 import type { MediaAsset } from "@/types/application/media/media-asset";
 import type { MediaUploadResponse } from "@/types/application/media/media-upload-response";
 
-import { api, getSessionToken } from "../api-client";
+import { api, apiUrl, sessionHeaders } from "../api-client";
 
 const IMAGEKIT_URL_ENDPOINT =
   import.meta.env.VITE_IMAGEKIT_URL_ENDPOINT ?? "https://ik.imagekit.io/socialcoisa";
@@ -73,19 +73,25 @@ export const mediaApi = {
    *
    * Os cabecalhos vêm assinados pelo servidor: o `Content-Type` precisa ser EXATAMENTE o mesmo, ou
    * o storage recusa a subida. Com o gateway do b7 a subida passa pelo próprio app
-   * (`PUT /api/storage/{chave}`), que exige a sessão de quem é dono do asset — por isso o token vai
-   * junto. Na AWS, a URL assinada direto no bucket ignora esse cabecalho extra.
+   * (`PUT /api/storage/{chave}`), que exige a sessão de quem é dono do asset — por isso os cookies
+   * vão junto. Na AWS, a URL assinada direto no bucket ignora esse cabecalho extra.
    */
   uploadToSignedUrl: async (
     signedUrl: string,
     file: File,
     headers: Record<string, string> = {},
   ) => {
-    const token = getSessionToken();
+    // Only the API's own storage gateway gets the session cookies and CSRF header: a bucket URL
+    // signed by AWS would refuse a credentialed CORS request.
+    const toApi =
+      typeof window !== "undefined" &&
+      new URL(signedUrl, window.location.href).origin ===
+        new URL(apiUrl("/"), window.location.href).origin;
     const response = await fetch(signedUrl, {
       method: "PUT",
       body: file,
-      headers: token ? { ...headers, "X-Session-Token": token } : headers,
+      credentials: toApi ? "include" : "same-origin",
+      headers: toApi ? { ...headers, ...sessionHeaders() } : headers,
     });
 
     if (!response.ok) {

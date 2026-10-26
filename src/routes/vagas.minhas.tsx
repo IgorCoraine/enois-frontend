@@ -19,6 +19,7 @@ import {
 import { ApiError, jobsApi } from "@/lib/api";
 import { applicationStatusLabel, statusTone } from "@/lib/job-application-status";
 import { requireAuth } from "@/lib/require-auth";
+import { safeHref } from "@/lib/safe-url";
 
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -235,7 +236,7 @@ function MyJobs() {
 
                       <div className="mt-2 flex flex-wrap items-center gap-2">
                         <a
-                          href={job.sourceUrl ?? "#"}
+                          href={safeHref(job.sourceUrl) ?? "#"}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="inline-flex h-9 items-center gap-1.5 rounded-full border border-border-soft px-3 text-sm font-medium transition hover:bg-muted"

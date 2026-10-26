@@ -25,7 +25,7 @@ describe("id de quem esta na tela", () => {
   afterEach(() => vi.unstubAllGlobals());
 
   it("usa o current_user do localStorage enquanto o /me nao respondeu", () => {
-    valores.set("session_token", "token-de-teste");
+    valores.set("session_active", "1");
     valores.set("current_user", JSON.stringify({ id: "user_1", username: "ana", name: "Ana" }));
 
     expect(getCurrentUserId()).toBe("user_1");
@@ -38,14 +38,14 @@ describe("id de quem esta na tela", () => {
   });
 
   it("ignora um current_user corrompido em vez de quebrar a tela", () => {
-    valores.set("session_token", "token-de-teste");
+    valores.set("session_active", "1");
     valores.set("current_user", "{isto nao e json");
 
     expect(getCurrentUserId()).toBeNull();
   });
 
   it("ignora um current_user sem id", () => {
-    valores.set("session_token", "token-de-teste");
+    valores.set("session_active", "1");
     valores.set("current_user", JSON.stringify({ username: "ana" }));
 
     expect(getCurrentUserId()).toBeNull();

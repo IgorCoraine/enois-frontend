@@ -3,6 +3,7 @@ import { createRouter } from "@tanstack/react-router";
 
 import { PageSkeleton } from "@/components/skeletons/page-skeleton";
 
+import { readCspNonce } from "./lib/csp";
 import { registerBrowserQueryClient } from "./lib/query-client";
 import { routeTree } from "./routeTree.gen";
 
@@ -32,6 +33,8 @@ export const getRouter = () => {
     defaultPendingComponent: PageSkeleton,
     defaultPendingMs: 400,
     defaultPendingMinMs: 300,
+    // Stamps the request's CSP nonce on every inline script the router renders (see lib/csp.ts).
+    ssr: { nonce: readCspNonce() },
   });
 
   return router;

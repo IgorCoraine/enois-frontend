@@ -40,6 +40,10 @@ export function EmbedPlayer({ type, id, autoplay = false }: EmbedPlayerProps) {
             className="aspect-video w-full"
             allow="autoplay; fullscreen; encrypted-media"
             allowFullScreen
+            // O YouTube devolve erro 153 quando o quadro é pedido sem `Referer`. A página manda
+            // `Referrer-Policy: no-referrer` (header de segurança em src/server.ts), então o
+            // quadro pede a política do navegador só para si: vai a origem, o caminho do post não.
+            referrerPolicy="strict-origin-when-cross-origin"
           />
         </div>
       ) : (

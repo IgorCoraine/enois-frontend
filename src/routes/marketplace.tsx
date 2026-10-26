@@ -13,6 +13,7 @@ import { BadgeCheck, Check, RotateCcw, Search, Sparkles, Store } from "lucide-re
 
 import { marketplaceApi, themesApi } from "@/lib/api";
 import { formatFaisca, parseFaiscaInput } from "@/lib/faisca";
+import { useListingTheme } from "@/lib/marketplace/use-listing-theme";
 import { registerGalleryCollection } from "@/lib/theme/gallery-collections";
 import { useIsAuthenticated } from "@/lib/use-auth";
 import { cn } from "@/lib/utils";
@@ -366,10 +367,7 @@ function ListingCard({
   listing: MarketplaceListingView;
   onBought: (purchaseId: string) => void;
 }) {
-  const theme = useQuery({
-    queryKey: ["themes", "item", listing.itemId],
-    queryFn: () => themesApi.get(listing.itemId),
-  });
+  const theme = useListingTheme(listing);
   const queryClient = useQueryClient();
   const buy = useMutation({
     mutationFn: () => marketplaceApi.buy(listing.id),

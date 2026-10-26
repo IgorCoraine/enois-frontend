@@ -30,9 +30,11 @@ Layout principal da aplicação. Envolve todo o conteúdo das páginas autentica
 **Funcionalidades:**
 
 - Header com logo "Conexão", `SearchBox`, `ThemeToggle`, sino de notificações, avatar do perfil
-- Sidebar de navegação (desktop, 9 links) com destaque para rota ativa
-- Navbar inferior (mobile) com os mesmos links
+- Sidebar de navegação (desktop, ≥ 1024px, 9 links) com destaque para rota ativa
+- Drawer lateral de navegação (mobile/tablet, < 1024px) com os mesmos links
 - Popover de notificações com: lista, contador de não lidas, botão "Marcar lidas", ação "Aceitar" em convites
+
+O limite da navegação é 1024px (`lg`): abaixo, hambúrguer/drawer; a partir, sidebar.
 
 **Estado:** `useQuery` para perfil, notificações; `useMutation` para marcar lidas
 

@@ -10,17 +10,19 @@ vi.mock("./age-required", () => ({
   notifyParentalConsentRequired: vi.fn(),
 }));
 vi.mock("./api/client-origin", () => ({ clientOriginHeader: () => ({}) }));
-vi.mock("./auth-hint", () => ({ clearAuthHint: vi.fn() }));
+vi.mock("./auth-hint", () => ({ clearAuthHint: vi.fn(), setAuthHint: vi.fn() }));
 vi.mock("./device-id", () => ({ getDeviceId: () => null }));
 vi.mock("./query-client", () => ({ resetSessionScopedData: vi.fn() }));
-vi.mock("./session-key", () => ({ dropSessionKey: vi.fn() }));
+vi.mock("./session-key", () => ({
+  SESSION_FLAG_KEY: "session_active",
+  dropSessionKey: vi.fn(),
+  renewSessionKey: vi.fn(),
+}));
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
-const STORE_KEY_RENEWED = "novo-token";
-const REFRESH_RENEWED = "novo-refresh";
 const EXPIRES_FAR = Date.now() + 3_600_000; // 1h no futuro → não dispara refresh proativo
 
 function buildLocalStorage(overrides: Record<string, string> = {}) {
@@ -54,8 +56,7 @@ describe("api-client: refresh + retry (#183)", () => {
 
   beforeEach(() => {
     ls = buildLocalStorage({
-      session_token: "token-expirado",
-      refresh_token: "refresh-valido",
+      session_active: "1",
       session_expires_at: new Date(EXPIRES_FAR).toISOString(),
     });
     locationHref = "";
@@ -89,8 +90,6 @@ describe("api-client: refresh + retry (#183)", () => {
         if (callCount === 2)
           return jsonResponse(200, {
             // /auth/refresh → renovado
-            token: STORE_KEY_RENEWED,
-            refreshToken: REFRESH_RENEWED,
             expiresAt: new Date(EXPIRES_FAR).toISOString(),
             refreshExpiresAt: new Date(EXPIRES_FAR + 86400000).toISOString(),
           });
@@ -104,9 +103,8 @@ describe("api-client: refresh + retry (#183)", () => {
       code: "FORBIDDEN",
     });
 
-    // Sessão preservada: tokens renovados continuam no storage
-    expect(ls.getItem("session_token")).toBe(STORE_KEY_RENEWED);
-    expect(ls.getItem("refresh_token")).toBe(REFRESH_RENEWED);
+    // Sessão preservada
+    expect(ls.getItem("session_active")).toBe("1");
 
     // NÃO redirecionou para login
     expect(locationHref).toBe("");
@@ -121,8 +119,6 @@ describe("api-client: refresh + retry (#183)", () => {
         if (callCount === 1) return jsonResponse(401);
         if (callCount === 2)
           return jsonResponse(200, {
-            token: STORE_KEY_RENEWED,
-            refreshToken: REFRESH_RENEWED,
             expiresAt: new Date(EXPIRES_FAR).toISOString(),
             refreshExpiresAt: new Date(EXPIRES_FAR + 86400000).toISOString(),
           });
@@ -131,7 +127,7 @@ describe("api-client: refresh + retry (#183)", () => {
     );
 
     await expect(api.get("/algum-recurso")).rejects.toMatchObject({ status: 429 });
-    expect(ls.getItem("session_token")).toBe(STORE_KEY_RENEWED);
+    expect(ls.getItem("session_active")).toBe("1");
     expect(locationHref).toBe("");
   });
 
@@ -144,8 +140,6 @@ describe("api-client: refresh + retry (#183)", () => {
         if (callCount === 1) return jsonResponse(401);
         if (callCount === 2)
           return jsonResponse(200, {
-            token: STORE_KEY_RENEWED,
-            refreshToken: REFRESH_RENEWED,
             expiresAt: new Date(EXPIRES_FAR).toISOString(),
             refreshExpiresAt: new Date(EXPIRES_FAR + 86400000).toISOString(),
           });
@@ -154,7 +148,7 @@ describe("api-client: refresh + retry (#183)", () => {
     );
 
     await expect(api.get("/algum-recurso")).rejects.toMatchObject({ status: 500 });
-    expect(ls.getItem("session_token")).toBe(STORE_KEY_RENEWED);
+    expect(ls.getItem("session_active")).toBe("1");
     expect(locationHref).toBe("");
   });
 
@@ -167,8 +161,6 @@ describe("api-client: refresh + retry (#183)", () => {
         if (callCount === 1) return jsonResponse(401);
         if (callCount === 2)
           return jsonResponse(200, {
-            token: STORE_KEY_RENEWED,
-            refreshToken: REFRESH_RENEWED,
             expiresAt: new Date(EXPIRES_FAR).toISOString(),
             refreshExpiresAt: new Date(EXPIRES_FAR + 86400000).toISOString(),
           });
@@ -182,7 +174,7 @@ describe("api-client: refresh + retry (#183)", () => {
     });
 
     // Sessão limpa e redirecionamento para login
-    expect(ls.getItem("session_token")).toBeNull();
+    expect(ls.getItem("session_active")).toBeNull();
     expect(locationHref).toBe("/entrar?tab=login");
   });
 
@@ -198,7 +190,7 @@ describe("api-client: refresh + retry (#183)", () => {
     );
 
     await expect(api.get("/algum-recurso")).rejects.toMatchObject({ code: "SESSION_EXPIRED" });
-    expect(ls.getItem("session_token")).toBeNull();
+    expect(ls.getItem("session_active")).toBeNull();
     expect(locationHref).toBe("/entrar?tab=login");
   });
 
@@ -216,8 +208,8 @@ describe("api-client: refresh + retry (#183)", () => {
     await expect(api.get("/algum-recurso")).rejects.toMatchObject({
       code: "SESSION_CHECK_UNAVAILABLE",
     });
-    // Token antigo ainda no storage — não foi apagado
-    expect(ls.getItem("session_token")).toBe("token-expirado");
+    // A sessão não foi encerrada
+    expect(ls.getItem("session_active")).toBe("1");
     expect(locationHref).toBe("");
   });
 });

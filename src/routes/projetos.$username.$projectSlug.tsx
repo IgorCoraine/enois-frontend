@@ -5,6 +5,7 @@ import { texts } from "@/texts";
 import { ArrowLeft, Code2, Globe } from "lucide-react";
 
 import { communityProjectsApi } from "@/lib/api";
+import { safeHref } from "@/lib/safe-url";
 
 import { EmptyState } from "@/components/ui/empty-state";
 import { LoadingState } from "@/components/ui/loading-state";
@@ -108,7 +109,7 @@ function ProjectDetail() {
 
             <div className="flex flex-wrap gap-2 pt-1">
               {data.url && (
-                <a href={data.url} target="_blank" rel="noopener noreferrer">
+                <a href={safeHref(data.url) ?? undefined} target="_blank" rel="noopener noreferrer">
                   <span className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">
                     <Globe className="h-4 w-4" />
 
@@ -118,7 +119,11 @@ function ProjectDetail() {
               )}
 
               {data.repoUrl && (
-                <a href={data.repoUrl} target="_blank" rel="noopener noreferrer">
+                <a
+                  href={safeHref(data.repoUrl) ?? undefined}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   <span className="inline-flex items-center gap-2 rounded-full border border-border-soft px-4 py-2 text-sm font-medium text-text-strong">
                     <Code2 className="h-4 w-4" />
 

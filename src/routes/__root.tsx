@@ -177,11 +177,17 @@ if(css){var style=document.createElement("style");style.id="app-theme";style.tex
 }catch(error){}})();`;
 
 function RootShell({ children }: WithRequiredChildren) {
+  // Browsers blank the nonce attribute after parsing, so hydration would see a mismatch.
+  const nonce = useRouter().options.ssr?.nonce;
   return (
     <html lang="pt-BR" suppressHydrationWarning>
       <head>
         <HeadContent />
-        <script dangerouslySetInnerHTML={{ __html: THEME_BOOTSTRAP_SCRIPT }} />
+        <script
+          nonce={nonce}
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{ __html: THEME_BOOTSTRAP_SCRIPT }}
+        />
       </head>
 
       <body>

@@ -29,6 +29,7 @@ import { formatSalary } from "@/lib/currency";
 import { useCurrentUser } from "@/lib/current-user";
 import { actionsFor, applicationStatusLabel, statusTone } from "@/lib/job-application-status";
 import { buildShareTags } from "@/lib/open-graph";
+import { safeHref } from "@/lib/safe-url";
 
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -485,7 +486,7 @@ function JobDetail() {
 
                   {job.sourceUrl && (
                     <a
-                      href={job.sourceUrl}
+                      href={safeHref(job.sourceUrl) ?? undefined}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition hover:opacity-90"

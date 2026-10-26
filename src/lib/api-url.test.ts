@@ -27,13 +27,19 @@ describe("apiUrl", () => {
 describe("URLs da API fora do cliente", () => {
   const fontes = [
     "src/routes/auth.callback.tsx",
+    "src/lib/oauth-callback.ts",
     "src/lib/api/preferences.ts",
     "src/lib/api/resume-import.ts",
   ];
 
   it.each(fontes)("%s não usa caminho relativo /api/", (caminho) => {
     const fonte = readFileSync(join(process.cwd(), caminho), "utf8");
-    expect(fonte).toContain("apiUrl(");
     expect(fonte).not.toMatch(/["'`]\/api\//);
+  });
+
+  // Quem monta a URL do callback do provedor fora do cliente usa a base absoluta.
+  it("o callback do OAuth monta a URL com apiUrl", () => {
+    const fonte = readFileSync(join(process.cwd(), "src/lib/oauth-callback.ts"), "utf8");
+    expect(fonte).toContain("apiUrl(");
   });
 });

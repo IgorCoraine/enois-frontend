@@ -1,5 +1,5 @@
 import { preferencesApi } from "@/lib/api";
-import { getSessionToken } from "@/lib/api-client";
+import { hasSessionFlag } from "@/lib/session";
 
 /**
  * Leva a escolha de tema para a conta, quando existe uma.
@@ -10,7 +10,7 @@ import { getSessionToken } from "@/lib/api-client";
  * escolha tenta de novo.
  */
 export async function syncThemeCollection(collectionId: string | null): Promise<void> {
-  if (!getSessionToken()) return;
+  if (!hasSessionFlag()) return;
   try {
     await preferencesApi.setTheme(collectionId);
   } catch {

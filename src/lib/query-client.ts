@@ -1,6 +1,6 @@
 import type { QueryClient } from "@tanstack/react-query";
 
-import { isSessionKeyEvent } from "./session-key";
+import { SESSION_FLAG_KEY, isSessionKeyEvent } from "./session-key";
 
 let browserQueryClient: QueryClient | null = null;
 
@@ -9,11 +9,11 @@ export function registerBrowserQueryClient(queryClient: QueryClient) {
   browserQueryClient = queryClient;
 
   // Entrar, sair ou trocar de conta em outra aba muda quem é o leitor desta. Renovar o token não
-  // muda a chave da sessão; o token que aparece ou some cobre sessões abertas antes da chave existir.
+  // muda a chave da sessão; o indicador de sessão que aparece ou some cobre sessões sem chave.
   window.addEventListener("storage", (event) => {
     if (event.storageArea !== localStorage) return;
     const sessionFlipped =
-      event.key === "session_token" && (event.oldValue === null) !== (event.newValue === null);
+      event.key === SESSION_FLAG_KEY && (event.oldValue === null) !== (event.newValue === null);
     if (event.key === null || isSessionKeyEvent(event) || sessionFlipped) {
       void queryClient.resetQueries();
     }

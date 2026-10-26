@@ -3,8 +3,8 @@ import { queryOptions, useQuery } from "@tanstack/react-query";
 import type { Profile } from "@/types/application/profile/profile";
 
 import { profileApi } from "./api";
-import { getSessionToken } from "./api-client";
 import { getBrowserQueryClient } from "./query-client";
+import { hasSessionFlag } from "./session";
 
 const CURRENT_USER_QUERY_KEY = ["me"] as const;
 
@@ -18,7 +18,7 @@ export function currentUserQueryOptions() {
 }
 
 export function useCurrentUser() {
-  const token = getSessionToken();
+  const token = hasSessionFlag();
 
   return useQuery({
     ...currentUserQueryOptions(),
@@ -27,7 +27,7 @@ export function useCurrentUser() {
 }
 
 export function getCurrentUser(): Profile | null {
-  if (!getSessionToken()) return null;
+  if (!hasSessionFlag()) return null;
 
   return getBrowserQueryClient()?.getQueryData<Profile>(CURRENT_USER_QUERY_KEY) ?? null;
 }
@@ -45,7 +45,7 @@ export function getCurrentUserId() {
   const doCache = getCurrentUser()?.id;
   if (doCache) return doCache;
   if (typeof window === "undefined") return null;
-  if (!getSessionToken()) return null;
+  if (!hasSessionFlag()) return null;
   try {
     const raw = localStorage.getItem("current_user");
     if (!raw) return null;

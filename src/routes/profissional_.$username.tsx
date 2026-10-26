@@ -8,7 +8,7 @@ import { ArrowLeft, Building2, Globe, Link as LinkIcon, MapPin, UserX } from "lu
 import { ApiError, corporateApi, feedApi } from "@/lib/api";
 import { resolveCdnUrl } from "@/lib/api/media";
 import { litePageSize } from "@/lib/lite-mode";
-import { safeHttpUrl } from "@/lib/safe-url";
+import { safeHref } from "@/lib/safe-url";
 import { ogMetas } from "@/lib/seo";
 import { useAuth } from "@/lib/use-auth";
 import { useLiteMode } from "@/lib/use-lite-mode";
@@ -96,7 +96,7 @@ function ProfessionalProfile() {
   const items = posts.data?.pages.flatMap((page) => page.items) ?? [];
   const isMine = Boolean(myProfile.data?.exists && myProfile.data.username === data.username);
   const links = splitLinks(data.externalLinks)
-    .map(safeHttpUrl)
+    .map(safeHref)
     .filter((link): link is string => link !== null);
 
   return (

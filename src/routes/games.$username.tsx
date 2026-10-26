@@ -6,7 +6,7 @@ import { ExternalLink, Gamepad2, Users } from "lucide-react";
 
 import { gamesApi } from "@/lib/api";
 import { resolveCdnUrl } from "@/lib/api/media";
-import { safeHttpUrl } from "@/lib/safe-url";
+import { safeHref } from "@/lib/safe-url";
 import { useAuth } from "@/lib/use-auth";
 
 import { Button } from "@/components/ui/button";
@@ -160,7 +160,7 @@ function CreatorPage() {
           {dev.links.length > 0 && (
             <div className="flex flex-wrap gap-1.5 border-t border-border-soft px-4 py-3 sm:px-5">
               {dev.links
-                .map(safeHttpUrl)
+                .map(safeHref)
                 .filter((link): link is string => link !== null)
                 .map((link) => (
                   <a

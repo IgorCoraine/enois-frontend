@@ -163,13 +163,13 @@ Cliente central para comunicação com o backend em `https://rede.fly.dev/api`.
 
 ## Módulo Events (`src/lib/api/events.ts`)
 
-| Método | Endpoint                 | Descrição          |
-| ------ | ------------------------ | ------------------ |
-| GET    | `/events`                | Listar eventos (`attending` do viewer com sessão) |
+| Método | Endpoint                 | Descrição                                          |
+| ------ | ------------------------ | -------------------------------------------------- |
+| GET    | `/events`                | Listar eventos (`attending` do viewer com sessão)  |
 | GET    | `/events/{id}`           | Detalhar evento (`attending` do viewer com sessão) |
-| POST   | `/events`                | Criar evento       |
-| POST   | `/events/{id}/attendees` | Confirmar presença |
-| DELETE | `/events/{id}/attendees` | Cancelar presença  |
+| POST   | `/events`                | Criar evento                                       |
+| POST   | `/events/{id}/attendees` | Confirmar presença                                 |
+| DELETE | `/events/{id}/attendees` | Cancelar presença                                  |
 
 ---
 
@@ -281,18 +281,3 @@ Cliente central para comunicação com o backend em `https://rede.fly.dev/api`.
 | Método | Endpoint        | Descrição                       |
 | ------ | --------------- | ------------------------------- |
 | GET    | `/users/search` | Buscar usuários (para @menções) |
-
----
-
-## Server Functions
-
-### `getImageKitAuth` (`src/lib/api/imagekit-auth.fn.ts`)
-
-Server function que retorna autenticação para upload no ImageKit:
-
-- Gera `token` (UUID), `expire` (30min), `signature` (HMAC-SHA1)
-- Requer `IMAGEKIT_PRIVATE_KEY` no ambiente
-
-### `getGreeting` (`src/lib/api/example.functions.ts`)
-
-Server function de exemplo que retorna saudação + modo de ambiente.

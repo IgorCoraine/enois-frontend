@@ -58,8 +58,11 @@ pesquisa — é abuso.
 
 Vale saber antes de reportar, para não confundir escolha com falha:
 
-- **A sessão fica em `localStorage`, não em cookie** — não há CSRF de formulário; toda escrita manda
-  o token em cabeçalho, e quem valida é o backend.
+- **A sessão fica em cookies `HttpOnly`** (`enois_session`/`enois_refresh`), fora do alcance de
+  script na página. Escrita autenticada por cookie exige o cabeçalho `X-CSRF-Protection: 1`, que um
+  formulário de outro site não consegue mandar; quem valida é o backend.
+- **CSP com nonce por requisição**: em produção só roda script inline que o servidor marcou; links
+  vindos de dados passam por uma lista de esquemas permitidos (http, https, mailto, relativo).
 - **HTML/CSS colado por usuário roda em quadro isolado** (`sandbox` sem `allow-scripts` no modo
   embutido, CSP própria dentro do documento, sem rede). `allow-same-origin` existe só para o nosso
   código medir a altura do quadro — quem executa script é `allow-scripts`, que continua fora.

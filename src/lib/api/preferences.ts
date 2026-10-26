@@ -1,8 +1,9 @@
+import { texts } from "@/texts";
 import type { Personalization } from "@/types/application/preferences/personalization";
 import type { LinkedinImportPreview } from "@/types/application/profile/linkedin-import-preview";
 import type { Profile } from "@/types/application/profile/profile";
 
-import { api } from "../api-client";
+import { ApiError, api } from "../api-client";
 import { clientOriginHeader } from "./client-origin";
 
 /**
@@ -40,24 +41,27 @@ export const preferencesApi = {
 
   /**
    * Importar o ARQUIVO DE DADOS do LinkedIn (multipart): devolve o retrato parseado
-   * para revisão — nada é salvo automaticamente. Usa fetch direto (multipart).
+   * para revisão — nada é salvo automaticamente.
    */
   importLinkedinArchive: async (file: File) => {
-    const { apiUrl, getSessionToken } = await import("../api-client");
     const formData = new FormData();
     formData.append("file", file);
-    // URL absoluta (`apiUrl`): o host do front não serve `/api` em produção, e o multipart
-    // relativo ia parar no 404 do próprio front.
-    const response = await fetch(apiUrl("/me/import/linkedin"), {
-      method: "POST",
-      headers: { "X-Session-Token": getSessionToken() ?? "", ...clientOriginHeader() },
-      body: formData,
-    });
-    if (!response.ok) {
-      const body = await response.json().catch(() => null);
-      throw new Error(body?.message ?? "Não foi possível ler o arquivo do LinkedIn.");
+    try {
+      // Through the shared client: same session refresh/retry as every other call.
+      return await api.post<LinkedinImportPreview>("/me/import/linkedin", formData, {
+        idempotent: false,
+      });
+    } catch (error) {
+      // 413 may come from the API (IMPORT_TOO_LARGE) or from a proxy without a JSON body.
+      if (
+        error instanceof ApiError &&
+        (error.status === 413 || error.code === "IMPORT_TOO_LARGE")
+      ) {
+        throw new Error(texts.errors.knownCodes.IMPORT_TOO_LARGE);
+      }
+      if (error instanceof ApiError && error.code) throw new Error(error.message);
+      throw new Error("Não foi possível ler o arquivo do LinkedIn.");
     }
-    return (await response.json()) as LinkedinImportPreview;
   },
 
   /**

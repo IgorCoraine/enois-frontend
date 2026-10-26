@@ -40,3 +40,6 @@ dist-ssr
 .env
 .env.*
 !.env.example
+
+# Local test report output (JSON report written by test tooling wrappers).
+.vitest/

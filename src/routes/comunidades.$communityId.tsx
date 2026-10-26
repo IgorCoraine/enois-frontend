@@ -476,9 +476,9 @@ function CommunityDetail() {
                 .filter((m) => m.userId !== currentUser?.id)
                 .map((m) => (
                   <button
-                    key={m.userId}
-                    disabled={transfer.isPending}
-                    onClick={() => transfer.mutate(m.userId)}
+                    key={m.username}
+                    disabled={transfer.isPending || !m.userId}
+                    onClick={() => m.userId && transfer.mutate(m.userId)}
                     className="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left transition hover:bg-muted disabled:opacity-60"
                   >
                     <UserAvatar src={resolveCdnUrl(m.avatar)} alt={m.name} className="h-8 w-8" />
@@ -768,7 +768,7 @@ function CommunityDetail() {
 
               <div className="space-y-3">
                 {members.map((m) => (
-                  <div key={m.userId} className="flex items-center gap-3">
+                  <div key={m.username} className="flex items-center gap-3">
                     <Link to="/perfil/$username" params={{ username: m.username }}>
                       <UserAvatar src={m.avatar} alt={m.name} className="h-9 w-9 shrink-0" />
                     </Link>

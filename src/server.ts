@@ -1,5 +1,6 @@
 import type { ServerEntry } from "@/types/server/server-entry";
 
+import { CSP_NONCE_HEADER, contentSecurityPolicy, createCspNonce } from "./lib/csp";
 import "./lib/error-capture";
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
@@ -33,39 +34,37 @@ async function normalizeCatastrophicSsrResponse(response: Response): Promise<Res
 }
 
 /**
- * Headers de segurança em TODA página SSR (F-01 do pentest): o backend já emitia os deles,
- * o front não emitia NENHUM — a página de login podia ser emoldurada (clickjacking). O CSP
- * aqui é o conservador que a aplicação AGUENTA: o app usa style inline (Tailwind em style),
- * scripts inline de hidratação, fontes do Google, mídia do CDN e IFRAMES de jogos de terceiros
- * (frame-src https:) — apertar mais que isso quebra a tela; frame-ancestors 'none' é a peça
- * anti-clickjacking e HSTS cobre o transporte.
+ * Security headers on every SSR response. The CSP lives in `lib/csp.ts` (per-request nonce).
+ * COOP isolates the window from cross-origin openers/popups; CORP keeps other sites from
+ * embedding our responses.
  */
 const SECURITY_HEADERS: Record<string, string> = {
-  "content-security-policy": [
-    "default-src 'self'",
-    "script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com",
-    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-    "font-src 'self' https://fonts.gstatic.com",
-    "img-src 'self' data: blob: https:",
-    "media-src 'self' https: blob:",
-    "connect-src 'self' https: wss: https://challenges.cloudflare.com",
-    "frame-src https:",
-    "frame-ancestors 'none'",
-    "object-src 'none'",
-    "base-uri 'self'",
-    "form-action 'self'",
-  ].join("; "),
   "x-frame-options": "DENY",
   "x-content-type-options": "nosniff",
-  "referrer-policy": "no-referrer",
+  "referrer-policy": "strict-origin-when-cross-origin",
   "permissions-policy": "geolocation=(), microphone=(), camera=()",
   "strict-transport-security": "max-age=31536000; includeSubDomains",
+  "cross-origin-opener-policy": "same-origin",
+  "cross-origin-resource-policy": "same-site",
 };
 
-function withSecurityHeaders(response: Response): Response {
+/** Pages whose URL carries a secret (OAuth `code`/`state`, reset or email-confirmation token). */
+const NO_REFERRER_PATHS = ["/auth/callback", "/auth/reset", "/auth/verify"];
+
+export function withSecurityHeaders(
+  response: Response,
+  request: Request,
+  nonce: string | null,
+): Response {
   const headers = new Headers(response.headers);
   for (const [name, value] of Object.entries(SECURITY_HEADERS)) {
     if (!headers.has(name)) headers.set(name, value);
+  }
+  if (!headers.has("content-security-policy")) {
+    headers.set("content-security-policy", contentSecurityPolicy(nonce));
+  }
+  if (NO_REFERRER_PATHS.includes(new URL(request.url).pathname)) {
+    headers.set("referrer-policy", "no-referrer");
   }
   return new Response(response.body, {
     status: response.status,
@@ -76,10 +75,16 @@ function withSecurityHeaders(response: Response): Response {
 
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
+    // Dev serves Vite's inline, un-nonced HMR preamble: no nonce there (CSP falls back).
+    const nonce = import.meta.env.DEV ? null : createCspNonce();
+    // Set in place (the runtime's request object cannot be re-wrapped); always overwritten, so a
+    // client-sent value never survives.
+    if (nonce) request.headers.set(CSP_NONCE_HEADER, nonce);
+    else request.headers.delete(CSP_NONCE_HEADER);
     try {
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
-      return withSecurityHeaders(await normalizeCatastrophicSsrResponse(response));
+      return withSecurityHeaders(await normalizeCatastrophicSsrResponse(response), request, nonce);
     } catch (error) {
       console.error(error);
       return withSecurityHeaders(
@@ -87,6 +92,8 @@ export default {
           status: 500,
           headers: { "content-type": "text/html; charset=utf-8" },
         }),
+        request,
+        nonce,
       );
     }
   },

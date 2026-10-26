@@ -46,6 +46,7 @@ import {
 } from "@/lib/api";
 import { authApi } from "@/lib/api";
 import { resolveCdnUrl } from "@/lib/api/media";
+import { conversationErrorMessage } from "@/lib/conversation-error";
 import { buildShareTags } from "@/lib/open-graph";
 import { isApprovedSoundCloudEmbed } from "@/lib/soundcloud-embed";
 import { useAuth } from "@/lib/use-auth";
@@ -304,6 +305,7 @@ function Profile() {
       queryClient.invalidateQueries({ queryKey: ["conversations"] });
       navigate({ to: "/mensagens", search: { conversation: conversation.id } });
     },
+    onError: (err) => toast(conversationErrorMessage(err), "error"),
   });
 
   const handleMessage = () => {

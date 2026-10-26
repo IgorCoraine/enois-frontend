@@ -11,6 +11,7 @@ import { Briefcase, Handshake, MessageCircle, Search, Send, Sparkles } from "luc
 // (import duplicado removido no merge)
 
 import { messagesApi, servicesApi } from "@/lib/api";
+import { conversationErrorMessage } from "@/lib/conversation-error";
 import { formatBrlCents, formatFaisca, parseFaiscaInput } from "@/lib/faisca";
 import { requireAuth } from "@/lib/require-auth";
 import { useIsAuthenticated } from "@/lib/use-auth";
@@ -220,6 +221,7 @@ function OfferCard({ listing }: { listing: ServiceListing }) {
     mutationFn: () => messagesApi.openDirect(listing.sellerId),
     onSuccess: (conversation) =>
       navigate({ to: "/mensagens", search: { conversation: conversation.id } }),
+    onError: (err) => toast(conversationErrorMessage(err), "error"),
   });
 
   return (

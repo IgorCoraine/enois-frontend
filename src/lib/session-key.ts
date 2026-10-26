@@ -6,6 +6,15 @@ import { useSyncExternalStore } from "react";
  */
 const SESSION_KEY = "session_id";
 
+/**
+ * "This browser has a session" flag, for UX only (which shell to draw, which queries to enable).
+ *
+ * The session itself lives in HttpOnly cookies set by the API: no script can read the tokens. The
+ * flag holds no secret; the API stays the source of truth (a 401 the session cannot recover from
+ * clears this flag in the api client).
+ */
+export const SESSION_FLAG_KEY = "session_active";
+
 const listeners = new Set<() => void>();
 
 function notify() {

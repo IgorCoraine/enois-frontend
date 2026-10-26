@@ -6,17 +6,11 @@ import { texts } from "@/texts";
 import { Loader2, Sparkles } from "lucide-react";
 import { z } from "zod";
 
-import { authApi } from "@/lib/api";
-import { apiUrl } from "@/lib/api-client";
-import { storeSession } from "@/lib/session";
+import { finishOAuthLogin, oauthCallbackUrl } from "@/lib/oauth-callback";
 
 import { Button } from "@/components/ui/button";
 
 const searchSchema = z.object({
-  token: z.string().optional(),
-  refreshToken: z.string().optional(),
-  expiresAt: z.string().optional(),
-  refreshExpiresAt: z.string().optional(),
   /** Cancelamento ou falha devolvidos pelo provedor (ver finishOAuthError no backend). */
   error: z.string().optional(),
   provider: z.string().optional(),
@@ -48,35 +42,20 @@ function OAuthCallback() {
     }
 
     // LinkedIn está registrado com redirect_uri para esta página: o code/state são trocados no
-    // backend, que devolve a sessão em /auth/callback?token=... (o mesmo caminho do Google).
+    // backend, que grava os cookies da sessão e volta para esta página (o mesmo caminho do Google).
     // A URL precisa ser ABSOLUTA (`apiUrl`): o host do front não expõe `/api`, então um caminho
     // relativo cai no 404 do próprio front e o login morre antes de chegar no backend.
     if (search.provider && search.code && search.state) {
-      const params = new URLSearchParams({ code: search.code, state: search.state });
-      window.location.replace(
-        apiUrl(`/auth/oauth/${search.provider.toLowerCase()}/callback?${params.toString()}`),
-      );
+      const callbackUrl = oauthCallbackUrl(search.provider, search.code, search.state);
+      if (callbackUrl) window.location.replace(callbackUrl);
+      else setError(texts.auth.social.callbackError);
       return;
     }
 
-    if (!search.token) {
-      setError(texts.auth.social.callbackError);
-      return;
-    }
-
-    storeSession({
-      token: search.token,
-      refreshToken: search.refreshToken,
-      expiresAt: search.expiresAt,
-      refreshExpiresAt: search.refreshExpiresAt,
+    void finishOAuthLogin().then((ok) => {
+      if (ok) void navigate({ to: "/feed", replace: true });
+      else setError(texts.auth.social.callbackError);
     });
-
-    // Busca o usuário para o cabeçalho já mostrar nome/foto (o token já está no storage).
-    void authApi
-      .me()
-      .then((user) => storeSession({ token: search.token!, user }))
-      .catch(() => undefined)
-      .finally(() => navigate({ to: "/feed", replace: true }));
   }, [search, navigate]);
 
   return (

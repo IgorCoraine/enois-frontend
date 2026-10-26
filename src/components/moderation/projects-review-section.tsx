@@ -6,6 +6,7 @@ import { texts } from "@/texts";
 import { FolderKanban, Globe } from "lucide-react";
 
 import { communityProjectsApi } from "@/lib/api";
+import { safeHref } from "@/lib/safe-url";
 
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -86,7 +87,7 @@ export function ProjectsReviewSection() {
                 <div className="flex flex-wrap gap-3 pt-1 text-xs">
                   {project.url && (
                     <a
-                      href={project.url}
+                      href={safeHref(project.url) ?? undefined}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1 text-primary hover:underline"
@@ -99,7 +100,7 @@ export function ProjectsReviewSection() {
 
                   {project.repoUrl && (
                     <a
-                      href={project.repoUrl}
+                      href={safeHref(project.repoUrl) ?? undefined}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-primary hover:underline"

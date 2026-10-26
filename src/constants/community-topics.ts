@@ -102,3 +102,14 @@ export function topicLabel(topic: CommunityTopic | null | undefined): string | n
   if (!topic) return null;
   return TOPIC_LABELS[topic as keyof typeof TOPIC_LABELS] ?? topic;
 }
+
+/**
+ * Assuntos oferecidos ao **publicar** no feed. "Todas" é filtro de vitrine, não assunto, e
+ * `RELACIONAMENTOS` saiu da publicação por decisão de produto.
+ *
+ * O assunto continua válido na taxonomia (comunidades, interesses e posts antigos), então quem já
+ * publicou com ele não perde o rótulo — só deixa de ser oferecido no compositor.
+ */
+export const POST_TOPICS = TOPICS.filter(
+  (topic) => topic !== "Todas" && topic !== "RELACIONAMENTOS",
+);

@@ -74,6 +74,13 @@ BACKEND_TARGET=http://localhost:8081 npm run dev
 Sem o `context-path=/api` o backend responde só em `/push/config`, `/notifications`, etc., e o proxy devolve
 404 em tudo.
 
+**Sessão no dev**: a sessão vive em cookies HttpOnly (`enois_session`/`enois_refresh`) que a API grava. No
+dev o navegador fala só com o Vite (`/api` relativo, via proxy), então os cookies são do próprio
+`localhost` e chegam sem configuração de CORS. Eles saem com `Secure`: o navegador aceita isso em
+`http://localhost`, mas não em `http://<ip-da-rede>` — para abrir o dev pelo IP, suba o backend com o profile
+`dev` (que liga `rede.auth.cookie-secure=false`). Toda escrita manda `X-CSRF-Protection: 1`; o backend
+recusa escrita com cookie sem esse header (403 `CSRF_REQUIRED`).
+
 ## Scripts
 
 - `npm run dev`: inicia o ambiente local
@@ -101,33 +108,30 @@ Se o deploy buildar mas abrir uma pagina 404 da propria Vercel, confira:
 - O build command deve ser `npm run build`.
 - Nao configure output directory manualmente; deixe a Vercel detectar pelo Nitro.
 
-## Deploy em producao (EKS via GitOps)
+## Deploy em producao
 
-O front de `enois.ia.br` **nao** roda na Vercel; ele roda no EKS junto do backend. Fluxo:
+O front de `enois.ia.br` **nao** roda na Vercel. Fluxo (`.github/workflows/build-and-push.yml`):
 
-1. Push em `main` deste repositorio.
-2. GitHub Actions (`.github/workflows/build-and-push.yml`) builda a imagem Docker
-   (`Dockerfile`, `NITRO_PRESET=node-server`), publica no ECR
-   (`818928662779.dkr.ecr.us-east-1.amazonaws.com/enois/frontend:<sha>`) e atualiza o manifesto em
-   `florestaencantada/integration_gitops` → `clusters/forest-dev/applications/enois-app.yaml`.
-3. O Argo CD faz o rollout (namespace `forest-apps`, Deployment `socialcoiso-front`).
+1. Push em `main` (prod) ou `qa` (QA) deste repositorio.
+2. O job de build (runner hospedado do GitHub) builda a imagem (`Dockerfile`, `NITRO_PRESET=node-server`)
+   e publica no Harbor (`harbor.b7cloud.top/enois/frontend:<branch>-<sha>`). PR so valida o build, sem
+   segredo nem credencial.
+3. O job de deploy (runner self-hosted, so em push/`workflow_dispatch`) atualiza o container pela API
+   do Portainer.
 
-O backend e acessado pelo mesmo host: o front chama `https://enois.ia.br/api/...`, o gateway roteia
-`/api/*` para o backend (removendo o prefixo `/api`) e todo o resto para este front.
+A API mora em outro host (`https://api.enois.ia.br/api` em prod), fixado no build por `VITE_API_BACKEND`.
 
 ## Variaveis de ambiente
 
-`VITE_*` sao embutidas no bundle em tempo de build (portanto publicas). `IMAGEKIT_PRIVATE_KEY` e segredo
-e deve chegar **em runtime** como variavel de ambiente do container (a server function `getImageKitAuth`
-le `process.env.IMAGEKIT_PRIVATE_KEY`).
+`VITE_*` sao embutidas no bundle em tempo de build (portanto publicas). O front nao usa nenhum segredo:
+o envio pelo ImageKit esta desativado (os arquivos sobem pela URL assinada que o backend devolve) e nao ha
+server function que leia chave privada.
 
-| Variavel                     | Quando  | Onde                                          |
-| ---------------------------- | ------- | --------------------------------------------- |
-| `VITE_API_BACKEND`           | build   | `.env` versionado (`https://enois.ia.br/api`) |
-| `VITE_IMAGEKIT_PUBLIC_KEY`   | build   | `.env` versionado (publica)                   |
-| `VITE_IMAGEKIT_UPLOAD_URL`   | build   | `.env` versionado                             |
-| `VITE_IMAGEKIT_URL_ENDPOINT` | build   | `.env` versionado                             |
-| `IMAGEKIT_PRIVATE_KEY`       | runtime | **Secret do container — nunca commitar**      |
+| Variavel                     | Quando | Onde                                                              |
+| ---------------------------- | ------ | ----------------------------------------------------------------- |
+| `VITE_API_BACKEND`           | build  | build-arg do `Dockerfile` (`https://api.enois.ia.br/api` em prod) |
+| `VITE_SITE_URL`              | build  | build-arg do `Dockerfile` (origem publica declarada pelo SSR)     |
+| `VITE_IMAGEKIT_URL_ENDPOINT` | build  | opcional: so resolve URLs antigas de midia do ImageKit            |
 
 ## Pendencias (o que falta)
 
@@ -173,9 +177,10 @@ sondas publicas: `GET /api/version` no backend e os chunks servidos no front.
 - `/auth/verify?token=...` — link do e-mail de confirmacao. Confirma e ja entra no app. Token
   expirado (410), ja usado (409) e invalido (404) tem mensagem propria.
 - `/auth/reset?token=...` — redefinicao de senha (inalterado).
-- `/auth/callback` — retorno do login social. Le `token`/`refreshToken` **e** `error` (cancelamento
-  ou falha vem do backend como `?error=...&provider=...`), grava a sessao completa (`storeSession`,
-  inclusive `current_user`) e vai para o feed. Esse tratamento vive **so** aqui: antes havia um
+- `/auth/callback` — retorno do login social. O backend grava os cookies da sessao no redirect e volta
+  com `?status=ok` (sem token na URL); a pagina confirma com `/auth/me`, grava `current_user` e vai para o
+  feed. Cancelamento ou falha vem como `?error=...&provider=...`. A pagina sai com
+  `Referrer-Policy: no-referrer`. Esse tratamento vive **so** aqui: antes havia um
   handler global em `__root.tsx` que disparava em qualquer URL com `?token=` e sequestrava o link de
   redefinicao de senha para o feed.
 - `/post/:id` — página pública: é o destino do link compartilhado, então abre para quem recebe (antes
@@ -216,7 +221,8 @@ sondas publicas: `GET /api/version` no backend e os chunks servidos no front.
 
 3. **Login social**: as credenciais (Google/Apple) ficam no **backend**; aqui nao ha nada a configurar
    alem do callback. O fluxo e: botao → `GET /api/auth/oauth/{provider}/start` → redirect para o provedor
-   → volta em `${REDE_FRONTEND_URL}/auth/callback?token=...`, tratado por `src/routes/auth.callback.tsx`.
+   → volta em `${REDE_FRONTEND_URL}/auth/callback?status=ok` com os cookies da sessao, tratado por
+   `src/routes/auth.callback.tsx`.
    Enquanto o backend nao tiver as credenciais, `start` responde 501 e a tela mostra o erro.
 4. **Esqueci minha senha**: depende do SMTP configurado no backend; o link cai em `/auth/reset?token=...`
    (rota `src/routes/auth.reset.tsx`, ja existente).
