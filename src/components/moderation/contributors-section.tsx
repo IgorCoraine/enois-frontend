@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { texts } from "@/texts";
 import type { ContributorAdminView } from "@/types/application/contributors/contributor-admin-view";
 import type { ContributorApplicationStatus } from "@/types/application/contributors/contributor-application-status";
-import { Mail, RefreshCw, UserPlus } from "lucide-react";
+import { BadgeCheck, Mail, RefreshCw, UserPlus } from "lucide-react";
 
 import { contributorsApi } from "@/lib/api";
 import { dataCurta, dataHora } from "@/lib/date/format";
@@ -15,16 +15,16 @@ import { GithubIcon } from "@/components/icons/github";
 import { ListRowSkeletons } from "@/components/skeletons/list-row-skeletons";
 
 /**
- * Fila de quem se ofereceu para contribuir, no mesmo formato da fila de candidaturas do painel:
- * card com os dados rotulados e ações claras (análise -> aprovação/recusa), em vez de um seletor
- * cru de status. Estados finais (aprovada/recusada) mostram só o selo.
+ * Painel de contribuintes.
+ *
+ * Quem tem contribuição verificada aparece sozinho, já aprovado pelo GitHub; o formulário da
+ * landing serve só para confirmar os dados (sem triagem). Candidaturas da landing continuam na
+ * fila manual (nova → análise → aprovar/recusar).
  */
 export function ContributorsSection() {
-  const queryClient = useQueryClient();
-
   const { data, isLoading, isError, refetch, isFetching } = useQuery({
     queryKey: ["moderator", "contributors"],
-    queryFn: () => contributorsApi.adminList(),
+    queryFn: () => contributorsApi.adminPanel(),
     retry: false,
   });
 
@@ -70,7 +70,10 @@ export function ContributorsSection() {
       ) : (
         <ul className="space-y-3">
           {rows.map((application) => (
-            <ContributorCard key={application.id} application={application} />
+            <ContributorCard
+              key={application.id ?? application.userId ?? application.github}
+              application={application}
+            />
           ))}
         </ul>
       )}
@@ -90,20 +93,35 @@ function ContributorCard({ application }: { application: ContributorAdminView })
 
   const setStatus = useMutation({
     mutationFn: (status: ContributorApplicationStatus) =>
-      contributorsApi.adminUpdateStatus(application.id, status),
+      contributorsApi.adminUpdateStatus(application.id!, status),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["moderator", "contributors"] });
     },
   });
 
   const status = application.status;
+  const githubVerified = application.source === "GITHUB_VERIFIED";
+  const canDecide = !githubVerified && application.id !== null;
   const decidida = status === "APPROVED" || status === "REJECTED";
 
   return (
     <li className="space-y-3 rounded-2xl border border-border-soft bg-surface-card p-4">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0">
-          <p className="text-sm font-semibold text-text-strong">{application.name}</p>
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-sm font-semibold text-text-strong">{application.name}</p>
+
+            {githubVerified ? (
+              <span className="inline-flex items-center gap-1 rounded-full bg-primary-soft px-2 py-0.5 text-[11px] font-semibold text-primary-text">
+                <BadgeCheck className="h-3 w-3" aria-hidden />
+                {texts.moderator.contributors.verifiedByGithub}
+              </span>
+            ) : (
+              <span className="rounded-full bg-surface-2 px-2 py-0.5 text-[11px] font-semibold text-text-subtle">
+                {texts.moderator.contributors.landingSource}
+              </span>
+            )}
+          </div>
 
           <p className="text-xs text-text-subtle">{dataHora(application.createdAt)}</p>
         </div>
@@ -130,15 +148,26 @@ function ContributorCard({ application }: { application: ContributorAdminView })
             <GithubIcon className="h-3.5 w-3.5" />@{application.github}
           </a>
 
-          <a
-            href={`mailto:${application.email}`}
-            className="inline-flex items-center gap-1 text-text-subtle hover:text-primary"
-          >
-            <Mail className="h-3.5 w-3.5" />
-            {application.email}
-          </a>
+          {application.email && (
+            <a
+              href={`mailto:${application.email}`}
+              className="inline-flex items-center gap-1 text-text-subtle hover:text-primary"
+            >
+              <Mail className="h-3.5 w-3.5" />
+              {application.email}
+            </a>
+          )}
         </div>
       </div>
+
+      {application.sealName && (
+        <p className="text-xs text-text-subtle">
+          {texts.moderator.contributors.seal(application.sealName)}
+          {application.evidenceCount != null
+            ? ` · ${texts.moderator.contributors.evidence(application.evidenceCount)}`
+            : ""}
+        </p>
+      )}
 
       <div className="flex flex-wrap gap-2 text-xs">
         {application.area && (
@@ -153,9 +182,11 @@ function ContributorCard({ application }: { application: ContributorAdminView })
           </span>
         )}
 
-        <span className="text-text-subtle">
-          {texts.moderator.contributors.acceptedAt}: {dataCurta(application.acceptedTermsAt)}
-        </span>
+        {application.acceptedTermsAt && (
+          <span className="text-text-subtle">
+            {texts.moderator.contributors.acceptedAt}: {dataCurta(application.acceptedTermsAt)}
+          </span>
+        )}
       </div>
 
       {application.message && (
@@ -170,7 +201,11 @@ function ContributorCard({ application }: { application: ContributorAdminView })
         </div>
       )}
 
-      {!decidida ? (
+      {application.formPending ? (
+        <p className="rounded-xl bg-primary-soft px-3 py-2 text-xs text-primary-text">
+          {texts.moderator.contributors.formPending}
+        </p>
+      ) : canDecide && !decidida ? (
         <div className="flex flex-wrap gap-2">
           {status === "NEW" && (
             <Button
@@ -204,7 +239,11 @@ function ContributorCard({ application }: { application: ContributorAdminView })
           </Button>
         </div>
       ) : (
-        <p className="text-xs text-text-subtle">{texts.moderator.contributors.done}</p>
+        <p className="text-xs text-text-subtle">
+          {githubVerified
+            ? texts.moderator.contributors.githubOnly
+            : texts.moderator.contributors.done}
+        </p>
       )}
 
       {setStatus.isError && (

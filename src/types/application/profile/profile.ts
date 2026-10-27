@@ -47,6 +47,8 @@ export type Profile = {
   nameColor?: string | null;
   /** Tema declarativo do nome do perfil, com fonte, paleta e efeito seguros. */
   nameTheme?: "DEFAULT" | "PIXEL" | "GOTHIC" | "NEON" | "GLITCH" | "CANDY" | null;
+  /** Cor da tag "Contribuinte" abaixo do nome; só quem tem contribuição verificada escolhe. */
+  contributorTagColor?: string | null;
   /** Currículo em PDF (endereço no storage) — só o dono recebe estes dois campos. */
   resumeUrl?: string | null;
   resumeName?: string | null;

@@ -2,6 +2,7 @@ import type { CommunityCosmetic } from "@/types/application/cosmetics/community-
 import type { CommunityCosmeticDraftInput } from "@/types/application/cosmetics/community-cosmetic-draft-input";
 import type { CommunityCosmeticKind } from "@/types/application/cosmetics/community-cosmetic-kind";
 import type { CommunityCosmeticUpdateInput } from "@/types/application/cosmetics/community-cosmetic-update-input";
+import type { ProfileContributorTag } from "@/types/application/cosmetics/profile-contributor-tag";
 import type { ProfileNameStyle } from "@/types/application/cosmetics/profile-name-style";
 
 import { api, buildQuery } from "../api-client";
@@ -27,4 +28,6 @@ export const cosmeticsApi = {
     api.post<{ status: "REPORTED" }>(`/cosmetics/${cosmeticId}/report`, {}),
   setNameStyle: (data: ProfileNameStyle) =>
     api.put<ProfileNameStyle>("/cosmetics/profile/name-style", data),
+  setContributorTagColor: (data: ProfileContributorTag) =>
+    api.put<ProfileContributorTag>("/cosmetics/profile/contributor-tag", data),
 };

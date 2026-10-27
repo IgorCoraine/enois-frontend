@@ -19,6 +19,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { AppContainer } from "@/components/app-container";
 import { PostCard } from "@/components/post-card";
 import { SandboxedHtmlFrame } from "@/components/post/sandboxed-html-frame";
+import { ProfileSeals } from "@/components/profile-seals";
 import { PageSkeleton } from "@/components/skeletons/page-skeleton";
 import { PostCardSkeletons } from "@/components/skeletons/post-card-skeletons";
 import { UserAvatar } from "@/components/user-avatar";
@@ -145,6 +146,8 @@ function ProfessionalProfile() {
                 <p className="break-words text-sm text-text-strong">{data.headline}</p>
               )}
             </div>
+
+            <ProfileSeals username={data.username} />
 
             <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-text-subtle">
               {data.location && (

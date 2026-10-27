@@ -22,8 +22,8 @@ export const feedApi = {
       `/corporate/${encodeURIComponent(username)}/posts${buildQuery({ cursor: cursor ?? undefined, limit })}`,
     ),
 
-  list: (cursor?: string | null, limit = 20, tab?: FeedTab) =>
-    api.get<PageResponse<PostView>>(`/feed${buildQuery({ cursor, limit, tab })}`),
+  list: (cursor?: string | null, limit = 20, tab?: FeedTab, type?: string) =>
+    api.get<PageResponse<PostView>>(`/feed${buildQuery({ cursor, limit, tab, type })}`),
 
   create: (data: CreatePostInput) => api.post<PostView>("/feed/posts", data),
 

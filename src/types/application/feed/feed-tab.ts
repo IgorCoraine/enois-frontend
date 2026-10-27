@@ -1,14 +1,14 @@
 export type FeedTab =
   | "FOR_YOU"
   | "ALL"
+  | "UNSEEN"
+  | "TRENDING"
+  // Legado — backend ainda aceita, frontend não mostra mais.
   | "FOLLOWING"
   | "RECENT"
   | "PROJECTS"
-  /** Recortes por tipo de post (2026-10-20): todo tipo virou uma forma de navegar. */
   | "NEWS"
   | "TUTORIALS"
   | "OPPORTUNITIES"
   | "REVIEWS"
-  | "FUN"
-  /** "Ainda nao vi": os posts em que a pessoa ainda nao reagiu nem comentou (2026-10-21). */
-  | "UNSEEN";
+  | "FUN";

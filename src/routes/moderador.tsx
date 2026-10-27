@@ -18,6 +18,7 @@ import {
   FolderKanban,
   Gamepad2,
   Gavel,
+  GitPullRequest,
   History,
   LifeBuoy,
   Mail,
@@ -48,6 +49,7 @@ import { useToast } from "@/components/ui/toast";
 
 import { AppContainer } from "@/components/app-container";
 import { AppealsSection } from "@/components/moderation/appeals-section";
+import { ContributionsSection } from "@/components/moderation/contributions-section";
 import { ContributorsSection } from "@/components/moderation/contributors-section";
 import { DisputesSection } from "@/components/moderation/disputes-section";
 import { EmailLogSection } from "@/components/moderation/email-log-section";
@@ -111,9 +113,9 @@ const ALL_TABS: { id: ModeratorTabId; label: string; icon: typeof Flag; adminOnl
     adminOnly: true,
   },
   {
-    id: "contributors",
-    label: texts.moderator.tabs.contributors,
-    icon: Users,
+    id: "githubContributions",
+    label: texts.moderator.tabs.githubContributions,
+    icon: GitPullRequest,
     adminOnly: true,
   },
 ];
@@ -249,6 +251,7 @@ function Moderador() {
             {canModerate && activeTab === "emails" && <EmailLogSection />}
             {canModerate && activeTab === "monitoring" && <MonitoringSection />}
             {me.admin && activeTab === "contributors" && <ContributorsSection />}
+            {me.admin && activeTab === "githubContributions" && <ContributionsSection />}
           </div>
         ) : (
           <ApplicationSection me={me} />

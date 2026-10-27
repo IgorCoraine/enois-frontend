@@ -22,6 +22,7 @@ export { sanctionsApi } from "./sanctions";
 export { moderationApi } from "./moderation";
 export { monitoringApi } from "./monitoring";
 export { sealsApi } from "./seals";
+export { contributorSealsApi } from "./contributor-seals";
 export { companiesApi } from "./companies";
 export { gamesApi } from "./games";
 export { projectsApi } from "./projects";

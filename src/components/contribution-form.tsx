@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 
 import { texts } from "@/texts";
+import type { ContributionFormProps } from "@/types/components/contribution-form-props";
 import { CheckCircle2, Loader2 } from "lucide-react";
 
 import { ApiError, contributorsApi } from "@/lib/api";
@@ -36,10 +37,15 @@ const EXPERIENCES = [
  * Formulário público de contribuição. A landing é aberta, então ele não pede conta: grava a
  * candidatura e o aceite dos termos para a fila interna de documentação do projeto.
  */
-export function ContributionForm() {
-  const [name, setName] = useState("");
-  const [github, setGithub] = useState("");
-  const [email, setEmail] = useState("");
+export function ContributionForm({
+  mode = "landing",
+  initial,
+  onSuccess,
+}: ContributionFormProps = {}) {
+  const verified = mode === "verified";
+  const [name, setName] = useState(initial?.name ?? "");
+  const [github, setGithub] = useState(initial?.github ?? "");
+  const [email, setEmail] = useState(initial?.email ?? "");
   const [area, setArea] = useState("");
   const [experience, setExperience] = useState("");
   const [message, setMessage] = useState("");
@@ -74,7 +80,7 @@ export function ContributionForm() {
     setFormError(null);
     setSending(true);
     try {
-      await contributorsApi.apply({
+      const payload = {
         name: name.trim(),
         github: github.trim(),
         email: email.trim(),
@@ -82,8 +88,14 @@ export function ContributionForm() {
         experience: experience || undefined,
         message: message.trim() || undefined,
         acceptedTerms,
-      });
+      };
+      if (verified) {
+        await contributorsApi.applyVerified(payload);
+      } else {
+        await contributorsApi.apply(payload);
+      }
       setSent(true);
+      onSuccess?.();
     } catch (err) {
       setFormError(err instanceof ApiError ? err.message : texts.landing.contribute.error);
     } finally {
@@ -97,16 +109,22 @@ export function ContributionForm() {
         <CheckCircle2 className="mx-auto h-10 w-10 text-primary" />
 
         <h3 className="mt-3 text-lg font-semibold tracking-tight">
-          {texts.landing.contribute.successTitle}
+          {verified
+            ? texts.landing.contribute.verifiedSuccessTitle
+            : texts.landing.contribute.successTitle}
         </h3>
 
         <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground">
-          {texts.landing.contribute.successDescription}
+          {verified
+            ? texts.landing.contribute.verifiedSuccessDescription
+            : texts.landing.contribute.successDescription}
         </p>
 
-        <Button variant="outline" className="mt-6 rounded-full" onClick={reset}>
-          {texts.landing.contribute.again}
-        </Button>
+        {!verified && (
+          <Button variant="outline" className="mt-6 rounded-full" onClick={reset}>
+            {texts.landing.contribute.again}
+          </Button>
+        )}
       </div>
     );
   }
@@ -136,7 +154,14 @@ export function ContributionForm() {
             onChange={(event) => setGithub(event.target.value)}
             placeholder={texts.landing.contribute.fields.githubPlaceholder}
             maxLength={120}
+            readOnly={verified}
+            aria-readonly={verified}
           />
+          {verified && (
+            <p className="text-xs text-text-subtle">
+              {texts.landing.contribute.verifiedGithubHint}
+            </p>
+          )}
           {errors.github && <p className="text-xs text-destructive">{errors.github}</p>}
         </div>
 
@@ -241,6 +266,8 @@ export function ContributionForm() {
 
             <>{texts.landing.contribute.sending}</>
           </>
+        ) : verified ? (
+          texts.landing.contribute.confirm
         ) : (
           texts.landing.contribute.submit
         )}

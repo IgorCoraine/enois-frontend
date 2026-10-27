@@ -74,36 +74,38 @@ import { PostCardSkeletons } from "@/components/skeletons/post-card-skeletons";
 import { UserAvatar } from "@/components/user-avatar";
 
 /** Abas válidas da tela inicial (a URL carrega a escolhida). */
-const HOME_TABS: HomeTab[] = [
-  "FOR_YOU",
-  "ALL",
-  "FOLLOWING",
-  "RECENT",
-  "UNSEEN",
-  "PROJECTS",
-  "NEWS",
-  "TUTORIALS",
-  "OPPORTUNITIES",
-  "REVIEWS",
-  "FUN",
-  "CORPORATE",
-];
+const HOME_TABS: HomeTab[] = ["ALL", "FOR_YOU", "UNSEEN", "TRENDING", "CORPORATE"];
 
-/** O rotulo de cada tipo de feed (a lista colapsada mostra o que esta escolhido). */
 const TAB_LABELS: Record<HomeTab, string> = {
-  FOR_YOU: texts.feed.tabs.forYou,
   ALL: texts.feed.tabs.all,
+  FOR_YOU: texts.feed.tabs.forYou,
+  UNSEEN: texts.feed.tabs.unseen,
+  TRENDING: texts.feed.tabs.trending,
+  CORPORATE: texts.feed.tabs.corporate,
+  // Legado (backend aceita mas frontend não mostra).
   FOLLOWING: texts.feed.tabs.following,
   RECENT: texts.feed.tabs.discussions,
-  UNSEEN: texts.feed.tabs.unseen,
   PROJECTS: texts.feed.tabs.projects,
   NEWS: texts.feed.tabs.news,
   TUTORIALS: texts.feed.tabs.tutorials,
   OPPORTUNITIES: texts.feed.tabs.opportunities,
   REVIEWS: texts.feed.tabs.reviews,
   FUN: texts.feed.tabs.fun,
-  CORPORATE: texts.feed.tabs.corporate,
 };
+
+/** Tipos de post para o filtro do feed "Tudo". */
+const POST_TYPE_FILTERS = [
+  { value: "", label: texts.feed.tabs.allTypes },
+  { value: "INSIGHT", label: "Insights" },
+  { value: "QUESTION", label: "Discussões" },
+  { value: "PROJECT", label: "Projetos" },
+  { value: "NEWS", label: "Notícias" },
+  { value: "TUTORIAL", label: "Tutoriais" },
+  { value: "OPPORTUNITY", label: "Oportunidades" },
+  { value: "REVIEW", label: "Avaliações" },
+  { value: "DIVERTIDO", label: "Diversão" },
+  { value: "ARTICLE", label: "Artigos" },
+] as const;
 
 export const Route = createFileRoute("/feed")({
   beforeLoad: requireAuth,
@@ -159,21 +161,16 @@ function rememberTopic(value: string): void {
   }
 }
 
-function useFeed(tab: HomeTab) {
-  // O SSR não roda o beforeLoader: um visitante sem sessão chegava a disparar o feed e levar 401
-  // em toda tela. A query só existe com sessão (a pista de auth cobre o primeiro render).
+function useFeed(tab: HomeTab, typeFilter?: string) {
   const authenticated = useIsAuthenticated();
-  // Em modo lite cada página vem maior: rolar o mesmo tanto custa menos idas ao servidor.
   const lite = useLiteMode();
   const pageSize = litePageSize(FEED_PAGE_SIZE, lite);
-  // Pagina por cursor: o backend devolve nextCursor e o scroll infinito busca a proxima pagina.
-  // staleTime curto: voltar para uma aba dentro de 20s não refaz a página inteira.
   return useInfiniteQuery({
-    queryKey: ["feed", tab],
+    queryKey: ["feed", tab, typeFilter ?? ""],
     queryFn: ({ pageParam }) =>
       tab === "CORPORATE"
         ? feedApi.corporate(pageParam ?? null, pageSize)
-        : feedApi.list(pageParam ?? null, pageSize, tab),
+        : feedApi.list(pageParam ?? null, pageSize, tab, typeFilter || undefined),
     initialPageParam: null as string | null,
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
     enabled: authenticated,
@@ -225,18 +222,16 @@ function Home() {
     if (next === tab) return;
     void navigate({ search: { aba: next }, replace: true });
   };
-  // A lista de tipos de feed fica recolhida: o botao mostra o escolhido e abre a lista.
   const [menuTipoFeed, setMenuTipoFeed] = useState(false);
   const [menuTopic, setMenuTopic] = useState(false);
+  const [typeFilter, setTypeFilter] = useState("");
   const {
     data: feedData,
-    // Somente a PRIMEIRA carga mostra o esqueleto. `isFetching` tambem fica true ao paginar, e
-    // como o feed trocava a lista inteira pelo LoadingState a cada pagina, a tela voltava ao topo.
     isLoading: feedLoading,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-  } = useFeed(tab);
+  } = useFeed(tab, tab === "ALL" ? typeFilter : undefined);
   const { data: profile } = useProfile();
   const { data: suggestions } = useSuggestions();
   const { data: eventsData } = useEvents();
@@ -1049,6 +1044,26 @@ function Home() {
               </PopoverContent>
             </Popover>
           </div>
+
+          {tab === "ALL" && (
+            <div className="flex flex-wrap gap-2 pb-2">
+              {POST_TYPE_FILTERS.map((f) => (
+                <button
+                  key={f.value}
+                  type="button"
+                  onClick={() => setTypeFilter(f.value)}
+                  className={cn(
+                    "rounded-full px-3 py-1 text-xs font-medium transition",
+                    typeFilter === f.value
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-surface-2 text-text-subtle hover:bg-surface-3 hover:text-text-strong",
+                  )}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+          )}
 
           <div className="space-y-4">
             {feedLoading && <PostCardSkeletons />}

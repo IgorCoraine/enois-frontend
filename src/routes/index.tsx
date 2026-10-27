@@ -706,6 +706,15 @@ function Landing() {
 
                 <li>
                   <Link
+                    to="/selos"
+                    className="text-muted-foreground transition-colors hover:text-foreground"
+                  >
+                    {texts.landing.footer.seals}
+                  </Link>
+                </li>
+
+                <li>
+                  <Link
                     to="/contato"
                     className="text-muted-foreground transition-colors hover:text-foreground"
                   >

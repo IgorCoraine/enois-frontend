@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { useMutation } from "@tanstack/react-query";
 import { useQueryClient } from "@tanstack/react-query";
@@ -69,6 +69,8 @@ export function AppearanceDialog({
   profileNameFont,
   profileNameColor,
   profileNameTheme: profileNameThemeId,
+  contributor = false,
+  contributorTagColor = null,
 }: AppearanceDialogProps) {
   const theme = usePreferencesStore((state) => state.theme);
   const setTheme = usePreferencesStore((state) => state.setTheme);
@@ -93,6 +95,11 @@ export function AppearanceDialog({
     null,
   );
   const [sellOpen, setSellOpen] = useState(false);
+  const [tagColor, setTagColor] = useState<string | null>(contributorTagColor);
+
+  useEffect(() => {
+    setTagColor(contributorTagColor);
+  }, [contributorTagColor]);
 
   const selectedNameTheme = displayNameTheme ?? profileNameThemeId ?? "DEFAULT";
   const selectedNameThemeDefinition = profileNameTheme(selectedNameTheme);
@@ -105,6 +112,19 @@ export function AppearanceDialog({
       void queryClient.invalidateQueries({ queryKey: ["me"] });
     },
   });
+
+  const contributorTagMutation = useMutation({
+    mutationFn: cosmeticsApi.setContributorTagColor,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["profile"] });
+      void queryClient.invalidateQueries({ queryKey: ["me"] });
+    },
+  });
+
+  const updateContributorTag = (color: string | null) => {
+    setTagColor(color);
+    contributorTagMutation.mutate({ color });
+  };
 
   const report = useMemo(() => reportThemeContrast(settings, theme), [settings, theme]);
 
@@ -350,6 +370,77 @@ export function AppearanceDialog({
               </p>
             </div>
           </section>
+
+          {contributor && (
+            <section className="space-y-3 border-t border-border-soft pt-4">
+              <div className="space-y-0.5">
+                <h3 className="text-xs font-medium text-text-strong">
+                  {texts.appearance.contributorTagTitle}
+                </h3>
+
+                <p className="text-xs font-normal text-text-subtle">
+                  {texts.appearance.contributorTagHint}
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => updateContributorTag(null)}
+                  aria-pressed={tagColor === null}
+                  className={cn(
+                    "rounded-full border px-3 py-1.5 text-xs transition",
+                    tagColor === null
+                      ? "border-primary bg-primary-soft text-primary"
+                      : "border-border-soft bg-surface-1 text-text-subtle hover:border-primary/60 hover:text-text-strong",
+                  )}
+                >
+                  {texts.appearance.contributorTagDefault}
+                </button>
+
+                {PROFILE_NAME_COLORS.map((color) => (
+                  <button
+                    key={color}
+                    type="button"
+                    aria-label={texts.appearance.nameStyleUseColor(color)}
+                    aria-pressed={tagColor === color}
+                    onClick={() => updateContributorTag(color)}
+                    className={cn(
+                      "h-8 w-8 rounded-full border-2 transition",
+                      tagColor === color
+                        ? "border-text-strong ring-2 ring-primary ring-offset-2 ring-offset-surface-card"
+                        : "border-transparent",
+                    )}
+                    style={{ backgroundColor: color }}
+                  />
+                ))}
+
+                <label className="inline-flex items-center gap-2 rounded-full border border-border-soft bg-surface-1 px-3 py-1.5 text-xs text-text-subtle">
+                  {texts.appearance.nameStyleOtherColor}
+                  <input
+                    type="color"
+                    value={tagColor ?? "#ff7a18"}
+                    onChange={(event) => updateContributorTag(event.target.value)}
+                    className="h-6 w-6 cursor-pointer rounded-full border-0 bg-transparent p-0"
+                  />
+                </label>
+              </div>
+
+              <div className="rounded-xl border border-border-soft bg-surface-1 px-4 py-3">
+                <p className="text-xs text-text-subtle">{texts.appearance.contributorTagPreview}</p>
+
+                <span
+                  className="mt-1 inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium"
+                  style={{
+                    color: tagColor ?? "var(--primary)",
+                    borderColor: tagColor ?? "var(--primary)",
+                  }}
+                >
+                  {texts.profile.contributorTag}
+                </span>
+              </div>
+            </section>
+          )}
 
           <section className="space-y-2">
             <h3 className="text-xs font-medium text-text-strong">{texts.appearance.mode}</h3>

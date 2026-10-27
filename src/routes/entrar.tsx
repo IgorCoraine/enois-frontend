@@ -632,6 +632,8 @@ function LoginForm({ onDone, onForgot }: LoginFormProps) {
   const [unverifiedEmail, setUnverifiedEmail] = useState<string | null>(null);
   /** Segundo fator pedido pelo backend depois da senha correta. */
   const [challenge, setChallenge] = useState<TwoFactorChallenge | null>(null);
+  /** Senha expirada: backend retornou token de reset. */
+  const [expiredResetToken, setExpiredResetToken] = useState<string | null>(null);
 
   const submit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -653,6 +655,12 @@ function LoginForm({ onDone, onForgot }: LoginFormProps) {
         password: parsed.data.password,
         turnstileToken: loginTurnstileRef.current?.getResponse() ?? undefined,
       });
+
+      // Senha expirada: backend retorna token de reset pra trocar direto.
+      if ("passwordExpired" in result && result.passwordExpired) {
+        setExpiredResetToken((result as unknown as { resetToken: string }).resetToken);
+        return;
+      }
 
       // Conta com segundo fator: a senha levou ao desafio, não à sessão.
       if ("twoFactorRequired" in result) {
@@ -679,6 +687,17 @@ function LoginForm({ onDone, onForgot }: LoginFormProps) {
 
   if (challenge) {
     return <TwoFactorForm challenge={challenge} onDone={onDone} />;
+  }
+
+  if (expiredResetToken) {
+    return (
+      <PasswordExpiredForm
+        resetToken={expiredResetToken}
+        onDone={() => {
+          setExpiredResetToken(null);
+        }}
+      />
+    );
   }
 
   return (
@@ -860,6 +879,88 @@ function TwoFactorForm({
         <p className="text-center text-xs text-muted-foreground">
           {texts.auth.twoFactor.recoveryHint}
         </p>
+      </form>
+    </div>
+  );
+}
+
+function PasswordExpiredForm({ resetToken, onDone }: { resetToken: string; onDone: () => void }) {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+  const t = {
+    title: "Atualize sua senha",
+    description:
+      "De acordo com a nossa nova política de segurança, selecione uma nova senha para continuar.",
+    newPassword: "Nova senha",
+    confirm: "Confirmar nova senha",
+    action: "Salvar nova senha",
+    mismatch: "As senhas não coincidem.",
+    success: "Senha atualizada. Faça login com a nova senha.",
+    error: "Não foi possível atualizar a senha. Tente novamente.",
+  };
+
+  const submit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const fd = new FormData(e.currentTarget);
+    const password = (fd.get("password") as string)?.trim();
+    const confirm = (fd.get("confirm") as string)?.trim();
+    if (!password || password.length < 8) {
+      setError("Mínimo de 8 caracteres.");
+      return;
+    }
+    if (password !== confirm) {
+      setError(t.mismatch);
+      return;
+    }
+    setError(null);
+    setLoading(true);
+    try {
+      await authApi.resetPassword(resetToken, password);
+      setSuccess(true);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : t.error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (success) {
+    return (
+      <div>
+        <ShieldCheck className="h-7 w-7 text-primary" />
+
+        <h1 className="mt-3 text-2xl font-semibold tracking-tight">{t.title}</h1>
+
+        <p className="mt-2 text-sm text-muted-foreground">{t.success}</p>
+
+        <Button className="mt-6 w-full" onClick={onDone}>
+          Entrar
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <ShieldCheck className="h-7 w-7 text-primary" />
+
+      <h1 className="mt-3 text-2xl font-semibold tracking-tight">{t.title}</h1>
+
+      <p className="mt-2 text-sm text-muted-foreground">{t.description}</p>
+
+      <form onSubmit={submit} className="mt-6 space-y-4" noValidate>
+        <Field label={t.newPassword}>
+          <Input name="password" type="password" autoFocus minLength={8} required />
+        </Field>
+
+        <Field label={t.confirm}>
+          <Input name="confirm" type="password" minLength={8} required />
+        </Field>
+        {error && <p className="text-sm text-destructive">{error}</p>}
+        <Button type="submit" className="w-full" disabled={loading}>
+          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : t.action}
+        </Button>
       </form>
     </div>
   );
