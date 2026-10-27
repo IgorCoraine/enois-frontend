@@ -1,0 +1,898 @@
+[
+  {
+    "slug": "home__desktop__light",
+    "route": "/",
+    "viewport": "desktop",
+    "variant": "light",
+    "changedPercent": 0
+  },
+  {
+    "slug": "entrar__desktop__light",
+    "route": "/entrar",
+    "viewport": "desktop",
+    "variant": "light",
+    "changedPercent": 0
+  },
+  {
+    "slug": "vagas__desktop__light",
+    "route": "/vagas",
+    "viewport": "desktop",
+    "variant": "light",
+    "changedPercent": 0
+  },
+  {
+    "slug": "blogs__desktop__light",
+    "route": "/blogs",
+    "viewport": "desktop",
+    "variant": "light",
+    "changedPercent": 0
+  },
+  {
+    "slug": "selos__desktop__light",
+    "route": "/selos",
+    "viewport": "desktop",
+    "variant": "light",
+    "changedPercent": 0
+  },
+  {
+    "slug": "empresas__desktop__light",
+    "route": "/empresas",
+    "viewport": "desktop",
+    "variant": "light",
+    "changedPercent": 0
+  },
+  {
+    "slug": "comunidades__desktop__light",
+    "route": "/comunidades",
+    "viewport": "desktop",
+    "variant": "light",
+    "changedPercent": 0
+  },
+  {
+    "slug": "games__desktop__light",
+    "route": "/games",
+    "viewport": "desktop",
+    "variant": "light",
+    "changedPercent": 0
+  },
+  {
+    "slug": "sobre__desktop__light",
+    "route": "/sobre",
+    "viewport": "desktop",
+    "variant": "light",
+    "changedPercent": 0
+  },
+  {
+    "slug": "feed__desktop__light",
+    "route": "/feed",
+    "viewport": "desktop",
+    "variant": "light",
+    "changedPercent": 0
+  },
+  {
+    "slug": "perfil-conta-teste-visual__desktop__light",
+    "route": "/perfil/conta-teste-visual",
+    "viewport": "desktop",
+    "variant": "light",
+    "changedPercent": 0
+  },
+  {
+    "slug": "mensagens__desktop__light",
+    "route": "/mensagens",
+    "viewport": "desktop",
+    "variant": "light",
+    "changedPercent": 0
+  },
+  {
+    "slug": "seguranca__desktop__light",
+    "route": "/seguranca",
+    "viewport": "desktop",
+    "variant": "light",
+    "changedPercent": 0
+  },
+  {
+    "slug": "carteira__desktop__light",
+    "route": "/carteira",
+    "viewport": "desktop",
+    "variant": "light",
+    "changedPercent": 0
+  },
+  {
+    "slug": "moderador__desktop__light",
+    "route": "/moderador",
+    "viewport": "desktop",
+    "variant": "light",
+    "changedPercent": 0
+  },
+  {
+    "slug": "salvos__desktop__light",
+    "route": "/salvos",
+    "viewport": "desktop",
+    "variant": "light",
+    "changedPercent": 0
+  },
+  {
+    "slug": "home__desktop__dark",
+    "route": "/",
+    "viewport": "desktop",
+    "variant": "dark",
+    "changedPercent": 0
+  },
+  {
+    "slug": "entrar__desktop__dark",
+    "route": "/entrar",
+    "viewport": "desktop",
+    "variant": "dark",
+    "changedPercent": 0
+  },
+  {
+    "slug": "vagas__desktop__dark",
+    "route": "/vagas",
+    "viewport": "desktop",
+    "variant": "dark",
+    "changedPercent": 0
+  },
+  {
+    "slug": "blogs__desktop__dark",
+    "route": "/blogs",
+    "viewport": "desktop",
+    "variant": "dark",
+    "changedPercent": 0
+  },
+  {
+    "slug": "selos__desktop__dark",
+    "route": "/selos",
+    "viewport": "desktop",
+    "variant": "dark",
+    "changedPercent": 0
+  },
+  {
+    "slug": "empresas__desktop__dark",
+    "route": "/empresas",
+    "viewport": "desktop",
+    "variant": "dark",
+    "changedPercent": 0
+  },
+  {
+    "slug": "comunidades__desktop__dark",
+    "route": "/comunidades",
+    "viewport": "desktop",
+    "variant": "dark",
+    "changedPercent": 0
+  },
+  {
+    "slug": "games__desktop__dark",
+    "route": "/games",
+    "viewport": "desktop",
+    "variant": "dark",
+    "changedPercent": 0
+  },
+  {
+    "slug": "sobre__desktop__dark",
+    "route": "/sobre",
+    "viewport": "desktop",
+    "variant": "dark",
+    "changedPercent": 0
+  },
+  {
+    "slug": "feed__desktop__dark",
+    "route": "/feed",
+    "viewport": "desktop",
+    "variant": "dark",
+    "changedPercent": 0
+  },
+  {
+    "slug": "perfil-conta-teste-visual__desktop__dark",
+    "route": "/perfil/conta-teste-visual",
+    "viewport": "desktop",
+    "variant": "dark",
+    "changedPercent": 0
+  },
+  {
+    "slug": "mensagens__desktop__dark",
+    "route": "/mensagens",
+    "viewport": "desktop",
+    "variant": "dark",
+    "changedPercent": 0
+  },
+  {
+    "slug": "seguranca__desktop__dark",
+    "route": "/seguranca",
+    "viewport": "desktop",
+    "variant": "dark",
+    "changedPercent": 0
+  },
+  {
+    "slug": "carteira__desktop__dark",
+    "route": "/carteira",
+    "viewport": "desktop",
+    "variant": "dark",
+    "changedPercent": 0
+  },
+  {
+    "slug": "moderador__desktop__dark",
+    "route": "/moderador",
+    "viewport": "desktop",
+    "variant": "dark",
+    "changedPercent": 0
+  },
+  {
+    "slug": "salvos__desktop__dark",
+    "route": "/salvos",
+    "viewport": "desktop",
+    "variant": "dark",
+    "changedPercent": 0
+  },
+  {
+    "slug": "home__desktop__synthwave-dark",
+    "route": "/",
+    "viewport": "desktop",
+    "variant": "synthwave-dark",
+    "changedPercent": 0
+  },
+  {
+    "slug": "entrar__desktop__synthwave-dark",
+    "route": "/entrar",
+    "viewport": "desktop",
+    "variant": "synthwave-dark",
+    "changedPercent": 0
+  },
+  {
+    "slug": "vagas__desktop__synthwave-dark",
+    "route": "/vagas",
+    "viewport": "desktop",
+    "variant": "synthwave-dark",
+    "changedPercent": 0
+  },
+  {
+    "slug": "blogs__desktop__synthwave-dark",
+    "route": "/blogs",
+    "viewport": "desktop",
+    "variant": "synthwave-dark",
+    "changedPercent": 0
+  },
+  {
+    "slug": "selos__desktop__synthwave-dark",
+    "route": "/selos",
+    "viewport": "desktop",
+    "variant": "synthwave-dark",
+    "changedPercent": 0
+  },
+  {
+    "slug": "empresas__desktop__synthwave-dark",
+    "route": "/empresas",
+    "viewport": "desktop",
+    "variant": "synthwave-dark",
+    "changedPercent": 0
+  },
+  {
+    "slug": "comunidades__desktop__synthwave-dark",
+    "route": "/comunidades",
+    "viewport": "desktop",
+    "variant": "synthwave-dark",
+    "changedPercent": 0
+  },
+  {
+    "slug": "games__desktop__synthwave-dark",
+    "route": "/games",
+    "viewport": "desktop",
+    "variant": "synthwave-dark",
+    "changedPercent": 0
+  },
+  {
+    "slug": "sobre__desktop__synthwave-dark",
+    "route": "/sobre",
+    "viewport": "desktop",
+    "variant": "synthwave-dark",
+    "changedPercent": 0
+  },
+  {
+    "slug": "feed__desktop__synthwave-dark",
+    "route": "/feed",
+    "viewport": "desktop",
+    "variant": "synthwave-dark",
+    "changedPercent": 0
+  },
+  {
+    "slug": "perfil-conta-teste-visual__desktop__synthwave-dark",
+    "route": "/perfil/conta-teste-visual",
+    "viewport": "desktop",
+    "variant": "synthwave-dark",
+    "changedPercent": 0
+  },
+  {
+    "slug": "mensagens__desktop__synthwave-dark",
+    "route": "/mensagens",
+    "viewport": "desktop",
+    "variant": "synthwave-dark",
+    "changedPercent": 0
+  },
+  {
+    "slug": "seguranca__desktop__synthwave-dark",
+    "route": "/seguranca",
+    "viewport": "desktop",
+    "variant": "synthwave-dark",
+    "changedPercent": 0
+  },
+  {
+    "slug": "carteira__desktop__synthwave-dark",
+    "route": "/carteira",
+    "viewport": "desktop",
+    "variant": "synthwave-dark",
+    "changedPercent": 0
+  },
+  {
+    "slug": "moderador__desktop__synthwave-dark",
+    "route": "/moderador",
+    "viewport": "desktop",
+    "variant": "synthwave-dark",
+    "changedPercent": 0
+  },
+  {
+    "slug": "salvos__desktop__synthwave-dark",
+    "route": "/salvos",
+    "viewport": "desktop",
+    "variant": "synthwave-dark",
+    "changedPercent": 0
+  },
+  {
+    "slug": "home__desktop__frutiger-aero-light",
+    "route": "/",
+    "viewport": "desktop",
+    "variant": "frutiger-aero-light",
+    "changedPercent": 0
+  },
+  {
+    "slug": "entrar__desktop__frutiger-aero-light",
+    "route": "/entrar",
+    "viewport": "desktop",
+    "variant": "frutiger-aero-light",
+    "changedPercent": 0
+  },
+  {
+    "slug": "vagas__desktop__frutiger-aero-light",
+    "route": "/vagas",
+    "viewport": "desktop",
+    "variant": "frutiger-aero-light",
+    "changedPercent": 0
+  },
+  {
+    "slug": "blogs__desktop__frutiger-aero-light",
+    "route": "/blogs",
+    "viewport": "desktop",
+    "variant": "frutiger-aero-light",
+    "changedPercent": 0
+  },
+  {
+    "slug": "selos__desktop__frutiger-aero-light",
+    "route": "/selos",
+    "viewport": "desktop",
+    "variant": "frutiger-aero-light",
+    "changedPercent": 0
+  },
+  {
+    "slug": "empresas__desktop__frutiger-aero-light",
+    "route": "/empresas",
+    "viewport": "desktop",
+    "variant": "frutiger-aero-light",
+    "changedPercent": 0
+  },
+  {
+    "slug": "comunidades__desktop__frutiger-aero-light",
+    "route": "/comunidades",
+    "viewport": "desktop",
+    "variant": "frutiger-aero-light",
+    "changedPercent": 0
+  },
+  {
+    "slug": "games__desktop__frutiger-aero-light",
+    "route": "/games",
+    "viewport": "desktop",
+    "variant": "frutiger-aero-light",
+    "changedPercent": 0
+  },
+  {
+    "slug": "sobre__desktop__frutiger-aero-light",
+    "route": "/sobre",
+    "viewport": "desktop",
+    "variant": "frutiger-aero-light",
+    "changedPercent": 0
+  },
+  {
+    "slug": "feed__desktop__frutiger-aero-light",
+    "route": "/feed",
+    "viewport": "desktop",
+    "variant": "frutiger-aero-light",
+    "changedPercent": 0
+  },
+  {
+    "slug": "perfil-conta-teste-visual__desktop__frutiger-aero-light",
+    "route": "/perfil/conta-teste-visual",
+    "viewport": "desktop",
+    "variant": "frutiger-aero-light",
+    "changedPercent": 0
+  },
+  {
+    "slug": "mensagens__desktop__frutiger-aero-light",
+    "route": "/mensagens",
+    "viewport": "desktop",
+    "variant": "frutiger-aero-light",
+    "changedPercent": 0
+  },
+  {
+    "slug": "seguranca__desktop__frutiger-aero-light",
+    "route": "/seguranca",
+    "viewport": "desktop",
+    "variant": "frutiger-aero-light",
+    "changedPercent": 0
+  },
+  {
+    "slug": "carteira__desktop__frutiger-aero-light",
+    "route": "/carteira",
+    "viewport": "desktop",
+    "variant": "frutiger-aero-light",
+    "changedPercent": 0
+  },
+  {
+    "slug": "moderador__desktop__frutiger-aero-light",
+    "route": "/moderador",
+    "viewport": "desktop",
+    "variant": "frutiger-aero-light",
+    "changedPercent": 0
+  },
+  {
+    "slug": "salvos__desktop__frutiger-aero-light",
+    "route": "/salvos",
+    "viewport": "desktop",
+    "variant": "frutiger-aero-light",
+    "changedPercent": 0
+  },
+  {
+    "slug": "home__mobile__light",
+    "route": "/",
+    "viewport": "mobile",
+    "variant": "light",
+    "changedPercent": 0
+  },
+  {
+    "slug": "entrar__mobile__light",
+    "route": "/entrar",
+    "viewport": "mobile",
+    "variant": "light",
+    "changedPercent": 0
+  },
+  {
+    "slug": "vagas__mobile__light",
+    "route": "/vagas",
+    "viewport": "mobile",
+    "variant": "light",
+    "changedPercent": 0
+  },
+  {
+    "slug": "blogs__mobile__light",
+    "route": "/blogs",
+    "viewport": "mobile",
+    "variant": "light",
+    "changedPercent": 0
+  },
+  {
+    "slug": "selos__mobile__light",
+    "route": "/selos",
+    "viewport": "mobile",
+    "variant": "light",
+    "changedPercent": 0
+  },
+  {
+    "slug": "empresas__mobile__light",
+    "route": "/empresas",
+    "viewport": "mobile",
+    "variant": "light",
+    "changedPercent": 0
+  },
+  {
+    "slug": "comunidades__mobile__light",
+    "route": "/comunidades",
+    "viewport": "mobile",
+    "variant": "light",
+    "changedPercent": 0
+  },
+  {
+    "slug": "games__mobile__light",
+    "route": "/games",
+    "viewport": "mobile",
+    "variant": "light",
+    "changedPercent": 0
+  },
+  {
+    "slug": "sobre__mobile__light",
+    "route": "/sobre",
+    "viewport": "mobile",
+    "variant": "light",
+    "changedPercent": 0
+  },
+  {
+    "slug": "feed__mobile__light",
+    "route": "/feed",
+    "viewport": "mobile",
+    "variant": "light",
+    "changedPercent": 0
+  },
+  {
+    "slug": "perfil-conta-teste-visual__mobile__light",
+    "route": "/perfil/conta-teste-visual",
+    "viewport": "mobile",
+    "variant": "light",
+    "changedPercent": 0
+  },
+  {
+    "slug": "mensagens__mobile__light",
+    "route": "/mensagens",
+    "viewport": "mobile",
+    "variant": "light",
+    "changedPercent": 0
+  },
+  {
+    "slug": "seguranca__mobile__light",
+    "route": "/seguranca",
+    "viewport": "mobile",
+    "variant": "light",
+    "changedPercent": 0
+  },
+  {
+    "slug": "carteira__mobile__light",
+    "route": "/carteira",
+    "viewport": "mobile",
+    "variant": "light",
+    "changedPercent": 0
+  },
+  {
+    "slug": "moderador__mobile__light",
+    "route": "/moderador",
+    "viewport": "mobile",
+    "variant": "light",
+    "changedPercent": 0
+  },
+  {
+    "slug": "salvos__mobile__light",
+    "route": "/salvos",
+    "viewport": "mobile",
+    "variant": "light",
+    "changedPercent": 0
+  },
+  {
+    "slug": "home__mobile__dark",
+    "route": "/",
+    "viewport": "mobile",
+    "variant": "dark",
+    "changedPercent": 0
+  },
+  {
+    "slug": "entrar__mobile__dark",
+    "route": "/entrar",
+    "viewport": "mobile",
+    "variant": "dark",
+    "changedPercent": 0
+  },
+  {
+    "slug": "vagas__mobile__dark",
+    "route": "/vagas",
+    "viewport": "mobile",
+    "variant": "dark",
+    "changedPercent": 0
+  },
+  {
+    "slug": "blogs__mobile__dark",
+    "route": "/blogs",
+    "viewport": "mobile",
+    "variant": "dark",
+    "changedPercent": 0
+  },
+  {
+    "slug": "selos__mobile__dark",
+    "route": "/selos",
+    "viewport": "mobile",
+    "variant": "dark",
+    "changedPercent": 0
+  },
+  {
+    "slug": "empresas__mobile__dark",
+    "route": "/empresas",
+    "viewport": "mobile",
+    "variant": "dark",
+    "changedPercent": 0
+  },
+  {
+    "slug": "comunidades__mobile__dark",
+    "route": "/comunidades",
+    "viewport": "mobile",
+    "variant": "dark",
+    "changedPercent": 0
+  },
+  {
+    "slug": "games__mobile__dark",
+    "route": "/games",
+    "viewport": "mobile",
+    "variant": "dark",
+    "changedPercent": 0
+  },
+  {
+    "slug": "sobre__mobile__dark",
+    "route": "/sobre",
+    "viewport": "mobile",
+    "variant": "dark",
+    "changedPercent": 0
+  },
+  {
+    "slug": "feed__mobile__dark",
+    "route": "/feed",
+    "viewport": "mobile",
+    "variant": "dark",
+    "changedPercent": 0
+  },
+  {
+    "slug": "perfil-conta-teste-visual__mobile__dark",
+    "route": "/perfil/conta-teste-visual",
+    "viewport": "mobile",
+    "variant": "dark",
+    "changedPercent": 0
+  },
+  {
+    "slug": "mensagens__mobile__dark",
+    "route": "/mensagens",
+    "viewport": "mobile",
+    "variant": "dark",
+    "changedPercent": 0
+  },
+  {
+    "slug": "seguranca__mobile__dark",
+    "route": "/seguranca",
+    "viewport": "mobile",
+    "variant": "dark",
+    "changedPercent": 0
+  },
+  {
+    "slug": "carteira__mobile__dark",
+    "route": "/carteira",
+    "viewport": "mobile",
+    "variant": "dark",
+    "changedPercent": 0
+  },
+  {
+    "slug": "moderador__mobile__dark",
+    "route": "/moderador",
+    "viewport": "mobile",
+    "variant": "dark",
+    "changedPercent": 0
+  },
+  {
+    "slug": "salvos__mobile__dark",
+    "route": "/salvos",
+    "viewport": "mobile",
+    "variant": "dark",
+    "changedPercent": 0
+  },
+  {
+    "slug": "home__mobile__synthwave-dark",
+    "route": "/",
+    "viewport": "mobile",
+    "variant": "synthwave-dark",
+    "changedPercent": 0
+  },
+  {
+    "slug": "entrar__mobile__synthwave-dark",
+    "route": "/entrar",
+    "viewport": "mobile",
+    "variant": "synthwave-dark",
+    "changedPercent": 0
+  },
+  {
+    "slug": "vagas__mobile__synthwave-dark",
+    "route": "/vagas",
+    "viewport": "mobile",
+    "variant": "synthwave-dark",
+    "changedPercent": 0
+  },
+  {
+    "slug": "blogs__mobile__synthwave-dark",
+    "route": "/blogs",
+    "viewport": "mobile",
+    "variant": "synthwave-dark",
+    "changedPercent": 0
+  },
+  {
+    "slug": "selos__mobile__synthwave-dark",
+    "route": "/selos",
+    "viewport": "mobile",
+    "variant": "synthwave-dark",
+    "changedPercent": 0
+  },
+  {
+    "slug": "empresas__mobile__synthwave-dark",
+    "route": "/empresas",
+    "viewport": "mobile",
+    "variant": "synthwave-dark",
+    "changedPercent": 0
+  },
+  {
+    "slug": "comunidades__mobile__synthwave-dark",
+    "route": "/comunidades",
+    "viewport": "mobile",
+    "variant": "synthwave-dark",
+    "changedPercent": 0
+  },
+  {
+    "slug": "games__mobile__synthwave-dark",
+    "route": "/games",
+    "viewport": "mobile",
+    "variant": "synthwave-dark",
+    "changedPercent": 0
+  },
+  {
+    "slug": "sobre__mobile__synthwave-dark",
+    "route": "/sobre",
+    "viewport": "mobile",
+    "variant": "synthwave-dark",
+    "changedPercent": 0
+  },
+  {
+    "slug": "feed__mobile__synthwave-dark",
+    "route": "/feed",
+    "viewport": "mobile",
+    "variant": "synthwave-dark",
+    "changedPercent": 0
+  },
+  {
+    "slug": "perfil-conta-teste-visual__mobile__synthwave-dark",
+    "route": "/perfil/conta-teste-visual",
+    "viewport": "mobile",
+    "variant": "synthwave-dark",
+    "changedPercent": 0
+  },
+  {
+    "slug": "mensagens__mobile__synthwave-dark",
+    "route": "/mensagens",
+    "viewport": "mobile",
+    "variant": "synthwave-dark",
+    "changedPercent": 0
+  },
+  {
+    "slug": "seguranca__mobile__synthwave-dark",
+    "route": "/seguranca",
+    "viewport": "mobile",
+    "variant": "synthwave-dark",
+    "changedPercent": 0
+  },
+  {
+    "slug": "carteira__mobile__synthwave-dark",
+    "route": "/carteira",
+    "viewport": "mobile",
+    "variant": "synthwave-dark",
+    "changedPercent": 0
+  },
+  {
+    "slug": "moderador__mobile__synthwave-dark",
+    "route": "/moderador",
+    "viewport": "mobile",
+    "variant": "synthwave-dark",
+    "changedPercent": 0
+  },
+  {
+    "slug": "salvos__mobile__synthwave-dark",
+    "route": "/salvos",
+    "viewport": "mobile",
+    "variant": "synthwave-dark",
+    "changedPercent": 0
+  },
+  {
+    "slug": "home__mobile__frutiger-aero-light",
+    "route": "/",
+    "viewport": "mobile",
+    "variant": "frutiger-aero-light",
+    "changedPercent": 0
+  },
+  {
+    "slug": "entrar__mobile__frutiger-aero-light",
+    "route": "/entrar",
+    "viewport": "mobile",
+    "variant": "frutiger-aero-light",
+    "changedPercent": 0
+  },
+  {
+    "slug": "vagas__mobile__frutiger-aero-light",
+    "route": "/vagas",
+    "viewport": "mobile",
+    "variant": "frutiger-aero-light",
+    "changedPercent": 0
+  },
+  {
+    "slug": "blogs__mobile__frutiger-aero-light",
+    "route": "/blogs",
+    "viewport": "mobile",
+    "variant": "frutiger-aero-light",
+    "changedPercent": 0
+  },
+  {
+    "slug": "selos__mobile__frutiger-aero-light",
+    "route": "/selos",
+    "viewport": "mobile",
+    "variant": "frutiger-aero-light",
+    "changedPercent": 0
+  },
+  {
+    "slug": "empresas__mobile__frutiger-aero-light",
+    "route": "/empresas",
+    "viewport": "mobile",
+    "variant": "frutiger-aero-light",
+    "changedPercent": 0
+  },
+  {
+    "slug": "comunidades__mobile__frutiger-aero-light",
+    "route": "/comunidades",
+    "viewport": "mobile",
+    "variant": "frutiger-aero-light",
+    "changedPercent": 0
+  },
+  {
+    "slug": "games__mobile__frutiger-aero-light",
+    "route": "/games",
+    "viewport": "mobile",
+    "variant": "frutiger-aero-light",
+    "changedPercent": 0
+  },
+  {
+    "slug": "sobre__mobile__frutiger-aero-light",
+    "route": "/sobre",
+    "viewport": "mobile",
+    "variant": "frutiger-aero-light",
+    "changedPercent": 0
+  },
+  {
+    "slug": "feed__mobile__frutiger-aero-light",
+    "route": "/feed",
+    "viewport": "mobile",
+    "variant": "frutiger-aero-light",
+    "changedPercent": 0
+  },
+  {
+    "slug": "perfil-conta-teste-visual__mobile__frutiger-aero-light",
+    "route": "/perfil/conta-teste-visual",
+    "viewport": "mobile",
+    "variant": "frutiger-aero-light",
+    "changedPercent": 0
+  },
+  {
+    "slug": "mensagens__mobile__frutiger-aero-light",
+    "route": "/mensagens",
+    "viewport": "mobile",
+    "variant": "frutiger-aero-light",
+    "changedPercent": 0
+  },
+  {
+    "slug": "seguranca__mobile__frutiger-aero-light",
+    "route": "/seguranca",
+    "viewport": "mobile",
+    "variant": "frutiger-aero-light",
+    "changedPercent": 0
+  },
+  {
+    "slug": "carteira__mobile__frutiger-aero-light",
+    "route": "/carteira",
+    "viewport": "mobile",
+    "variant": "frutiger-aero-light",
+    "changedPercent": 0
+  },
+  {
+    "slug": "moderador__mobile__frutiger-aero-light",
+    "route": "/moderador",
+    "viewport": "mobile",
+    "variant": "frutiger-aero-light",
+    "changedPercent": 0
+  },
+  {
+    "slug": "salvos__mobile__frutiger-aero-light",
+    "route": "/salvos",
+    "viewport": "mobile",
+    "variant": "frutiger-aero-light",
+    "changedPercent": 0
+  }
+]

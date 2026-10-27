@@ -8,3 +8,10 @@ branch only holds images, so the PR comments can show them.
   phone 390x844, light, dark, Synthwave dark and Frutiger Aero light themes.
 - Headless Chrome through Playwright with animations off; `pixelmatch` at threshold 0.1 over the
   visible area. `report.json` holds all 128 comparisons; `img/` holds the light and Synthwave pairs.
+
+## Round 2 (`round-2/`)
+
+After `qa` moved to `45531d5` (GitHub profile import): before is `qa` at `45531d5`, after is
+`fe/09-cleanup` at `457ebd5` with `@rede-enois/design-system@0.9.0-rc.4`. The profile is captured as
+a full page, reached from the feed link: its loader does not run under dev SSR, so the first round's
+profile captures showed "Pessoa não encontrada" on both sides.
