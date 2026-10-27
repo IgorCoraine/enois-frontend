@@ -6,6 +6,7 @@ import type { RequestOptions } from "@/types/application/api/request-options";
 import { notifyBirthDateRequired, notifyParentalConsentRequired } from "./age-required";
 import { clientOriginHeader } from "./api/client-origin";
 import { clearAuthHint } from "./auth-hint";
+import { ChannelError, forgetChannel, sealRequest, shouldSeal } from "./crypto/channel";
 import { getDeviceId } from "./device-id";
 import { resetSessionScopedData } from "./query-client";
 import { dropLegacyTokens, hasSessionFlag, legacyRefreshToken, storeSession } from "./session";
@@ -353,14 +354,50 @@ async function request<T>(
     if (fp) headers["X-Device-Fingerprint"] = fp;
   }
 
-  let response: Response;
-  try {
-    response = await fetch(`${baseUrl()}${path}`, {
+  // Cada tentativa monta o próprio envelope: timestamp e nonce não podem se repetir (o backend
+  // recusa replay). Corpo sem cifra segue exatamente como antes.
+  const sealedRoute = shouldSeal(method, path, multipart);
+  const sendRequest = async (): Promise<Response> => {
+    if (!sealedRoute) {
+      return fetch(`${baseUrl()}${path}`, {
+        method,
+        credentials: "include",
+        headers,
+        body: payload,
+      });
+    }
+    const sealed = await sealRequest({
+      method,
+      path,
+      // Rota exigida sem corpo (POST de ação): manda `{}` cifrado. Em claro, o backend recusaria
+      // a requisição por falta de envelope.
+      plaintext: typeof payload === "string" ? payload : "{}",
+      endpoint: `${baseUrl()}/crypto/session`,
+    });
+    return fetch(`${baseUrl()}${path}`, {
       method,
       credentials: "include",
-      headers,
-      body: payload,
+      headers: { ...headers, ...sealed.headers },
+      body: sealed.body,
     });
+  };
+
+  let response: Response;
+  try {
+    response = await sendRequest();
+    // O canal expirou no meio do caminho: abre outro e repete UMA vez. Sem isso o envio falharia
+    // com um 409 que a pessoa não teria como resolver.
+    if (response.status === HttpStatus.CONFLICT && sealedRoute) {
+      const code = await response
+        .clone()
+        .json()
+        .then((body: { code?: string } | null) => body?.code)
+        .catch(() => undefined);
+      if (code === "CRYPTO_CHANNEL_REQUIRED") {
+        forgetChannel();
+        response = await sendRequest();
+      }
+    }
     // Limite do proxy/CDN: a recusa vem sem CORS e o navegador a reporta como falha de rede.
     // Em escrita idempotente (todas as nossas), esperar o Retry-After e repetir uma vez é
     // melhor do que devolver "não foi possível" para quem só clicou duas vezes seguidas.
@@ -368,27 +405,22 @@ async function request<T>(
       const seconds = Number.parseInt(response.headers.get("Retry-After") ?? "", 10);
       if (Number.isFinite(seconds) && seconds > 0 && seconds <= MAX_RETRY_AFTER_SECONDS) {
         await sleep(seconds * 1000);
-        response = await fetch(`${baseUrl()}${path}`, {
-          method,
-          credentials: "include",
-          headers,
-          body: payload,
-        });
+        response = await sendRequest();
       }
     }
   } catch (firstFailure) {
+    // Falha do canal (WebCrypto ausente, handshake recusado) não é falha de rede: a mensagem
+    // própria precisa chegar à tela, não virar "não foi possível conectar".
+    if (firstFailure instanceof ChannelError) {
+      throw new ApiError(0, firstFailure.code, firstFailure.message, path);
+    }
     // Falha de rede numa escrita idempotente: pode ser o limitador da frente recusando o
     // preflight (o navegador esconde a resposta e reporta "fetch failed"). Espera a janela
     // virar e tenta uma vez; se continuar falhando, o erro sobe.
     if (opts?.idempotent) {
       try {
         await sleep(NETWORK_RETRY_DELAY_MS);
-        response = await fetch(`${baseUrl()}${path}`, {
-          method,
-          credentials: "include",
-          headers,
-          body: payload,
-        });
+        response = await sendRequest();
       } catch {
         throw new ApiError(
           0,
@@ -427,12 +459,7 @@ async function request<T>(
 
     if (refreshed === "renewed") {
       try {
-        response = await fetch(`${baseUrl()}${path}`, {
-          method,
-          credentials: "include",
-          headers,
-          body: payload,
-        });
+        response = await sendRequest();
       } catch {
         throw new ApiError(
           0,

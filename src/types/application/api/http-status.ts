@@ -1,5 +1,6 @@
 export const HttpStatus = {
   NO_CONTENT: 204,
+  CONFLICT: 409,
   UNAUTHORIZED: 401,
   FORBIDDEN: 403,
   TOO_MANY_REQUESTS: 429,
