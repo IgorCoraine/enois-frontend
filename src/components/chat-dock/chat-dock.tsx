@@ -94,7 +94,7 @@ function ChatDockInner() {
       {/* Painel principal: barra colapsada ou lista expandida */}
       <div className="flex flex-col">
         {expanded && (
-          <div className="mb-0 flex h-[calc(100vh-100px)] w-80 flex-col overflow-hidden rounded-t-2xl border border-border-soft bg-surface-card shadow-xl">
+          <div className="mb-0 flex h-[calc(100vh-8rem)] w-80 flex-col overflow-hidden rounded-t-2xl border border-border-soft bg-surface-card shadow-xl">
             {/* Header da lista */}
             <div className="flex items-center justify-between border-b border-border-soft px-4 py-3">
               <h3 className="text-sm font-medium text-text-strong">{texts.chatDock.title}</h3>
