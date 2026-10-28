@@ -27,6 +27,7 @@ import { useThemeSync } from "@/lib/theme/use-theme-sync";
 
 import { AgeGate } from "@/components/age-gate";
 import { AppContainer } from "@/components/app-container";
+import { ChatDock } from "@/components/chat-dock/chat-dock";
 import { DesignSystemProvider } from "@/components/design-system-provider";
 import { HealthyUsageGuard } from "@/components/healthy-usage/healthy-usage-guard";
 import { InstallPwaBanner } from "@/components/install-pwa-banner";
@@ -257,6 +258,7 @@ function RootInsideProvider() {
         <Outlet />
       </ModuleDisabledGate>
 
+      <ChatDock />
       <InstallPwaBanner />
       <LiteModeEffects />
       <HealthyUsageGuard />

@@ -4145,6 +4145,14 @@ export const texts = {
     footer:
       "A autorização parental é registrada com data e versão dos termos. O Énóis não trata a declaração de idade como verificação oficial.",
   },
+  chatDock: {
+    title: "Mensagens",
+    collapse: "Minimizar mensagens",
+    empty: "Nenhuma conversa ainda.",
+    loading: "Carregando…",
+    loadMore: "Carregar mais conversas",
+    loadingMore: "Carregando…",
+  },
   /** Supervisão parental: menor sem responsável autorizado (ECA Digital). */
   parentalGate: {
     title: "Conta de adolescente protegida",
