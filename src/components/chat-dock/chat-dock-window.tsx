@@ -37,7 +37,7 @@ export function ChatDockWindow({ conversationId }: { conversationId: string }) {
 
   if (isLoading || !conversation) {
     return (
-      <div className="flex h-[28rem] w-80 flex-col overflow-hidden rounded-t-2xl border border-border-soft bg-surface-card shadow-xl">
+      <div className="flex h-[32rem] w-[22rem] flex-col overflow-hidden rounded-t-2xl border border-border-soft bg-surface-card shadow-xl">
         <div className="flex items-center justify-between border-b border-border-soft px-4 py-3">
           <span className="h-4 w-24 animate-pulse rounded bg-surface-2" />
 
@@ -59,7 +59,16 @@ export function ChatDockWindow({ conversationId }: { conversationId: string }) {
   }
 
   return (
-    <div className="flex h-[28rem] w-80 flex-col overflow-hidden rounded-t-2xl border border-border-soft bg-surface-card shadow-xl">
+    <div className="relative flex h-[32rem] w-[22rem] flex-col overflow-hidden rounded-t-2xl border border-border-soft bg-surface-card shadow-xl">
+      <button
+        type="button"
+        onClick={() => closeChat(conversationId)}
+        className="absolute right-2 top-2 z-10 grid h-7 w-7 place-items-center rounded-full bg-surface-card/80 text-text-subtle shadow-sm transition hover:bg-surface-2 hover:text-text-strong"
+        aria-label={texts.common.close}
+      >
+        <X className="h-3.5 w-3.5" />
+      </button>
+
       <ConversationThread conversation={conversation} currentUserId={currentUser?.id ?? null} />
     </div>
   );
