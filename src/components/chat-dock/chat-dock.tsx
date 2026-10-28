@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { useChatDockStore } from "@/stores/chat-dock.store";
 import { texts } from "@/texts";
@@ -56,9 +56,17 @@ function ChatDockInner() {
     staleTime: 120_000,
   });
 
+  const { data: unreadData } = useQuery({
+    queryKey: ["conversations", "unread-count"],
+    queryFn: () => messagesApi.unreadCount(),
+    staleTime: 120_000,
+  });
+
   const markAsRead = useMutation({
     mutationFn: (id: string) => messagesApi.markAsRead(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["conversations"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["conversations"] });
+    },
   });
 
   const conversations = [...(conversationsData?.pages.flatMap((p) => p.items) ?? [])].sort(
@@ -68,7 +76,7 @@ function ChatDockInner() {
     },
   );
 
-  const totalUnread = conversations.reduce((sum, c) => sum + c.unread, 0);
+  const totalUnread = unreadData?.count ?? 0;
 
   const handleSelectConversation = (id: string) => {
     openChat(id);

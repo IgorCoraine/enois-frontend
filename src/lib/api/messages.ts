@@ -64,4 +64,7 @@ export const messagesApi = {
 
   search: (q: string, limit = 20) =>
     api.get<PageResponse<Conversation>>(`/conversations/search${buildQuery({ q, limit })}`),
+
+  /** Total global de mensagens nao lidas (todas as conversas). */
+  unreadCount: () => api.get<{ count: number }>("/conversations/unread-count"),
 };
