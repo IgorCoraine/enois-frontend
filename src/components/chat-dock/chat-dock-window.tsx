@@ -35,7 +35,7 @@ export function ChatDockWindow({ conversationId }: { conversationId: string }) {
     return null;
   }
 
-  if (isLoading) {
+  if (isLoading || !conversation) {
     return (
       <div className="flex h-[28rem] w-80 flex-col overflow-hidden rounded-t-2xl border border-border-soft bg-surface-card shadow-xl">
         <div className="flex items-center justify-between border-b border-border-soft px-4 py-3">
